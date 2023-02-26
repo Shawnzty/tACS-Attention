@@ -1,2 +1,2 @@
 import numpy as np
-print(np.full(10,1))
+from settings import *

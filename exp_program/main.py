@@ -5,12 +5,14 @@ from settings import *
 from funcs import *
 
 # dilogue box
-expInfo = {'Name':'HAL', 'Test': 0}
+''' Session: before, during, after
+    test: 1 = test, 0 = not test '''
+expInfo = {'Name':'HAL', 'Session':'before', 'Test': 0}
 expInfo['dateStr'] = data.getDateStr()  # add the current time
 # present a dialogue to change params
 dlg = gui.DlgFromDict(expInfo, title='Info', fixed=['dateStr'])
 if dlg.OK:
-    filename = expInfo['Name'] + "_" + expInfo['dateStr']
+    filename = expInfo['Name'] + "_" + expInfo['Session'] + "_" + expInfo['dateStr']
 else:
     core.quit()  # the user hit cancel so exit
 dataFile = open('data/'+filename+'.csv', 'w')  # a simple text file with 'comma-separated-values'
@@ -37,7 +39,7 @@ stimulus = visual.Circle(mywin, pos=(stimulus_pos, 0), size=stimulus_size, lineC
 arrow = visual.ShapeStim(mywin, vertices=((0, 15), (-80, 15), (-80, 40), (-140, 0), (-80, -40), (-80, -15), (0, -15)),
                          fillColor='white', lineColor=None)
 arrow.setVertices(arrow_right)
-exo_rect = visual.Rect(mywin, pos=(-1*rf_pos, 0), size=rf_size, lineColor=None, fillColor='white')
+exo_rect = visual.Rect(mywin, pos=(rf_pos, 0), size=rf_size, lineColor=None, fillColor='white')
 trigger = visual.Rect(mywin, pos=((screen_width-trigger_sizex)/2, trigger_ypos),
                        size=(trigger_sizex,trigger_sizey), lineColor=None, fillColor='white')
 print("Objects created.")
@@ -48,39 +50,39 @@ endo_cue = make_trials(int(endo_trials/2), 1, int(endo_trials/2), -1)
 exo_cue = make_trials(int(exo_trials/2), 1, int(exo_trials/2), -1)
 endo_valid = make_trials(round(endo_trials*val_ratio), 1, round(endo_trials*(1-val_ratio)), -1)
 exo_valid = make_trials(round(exo_trials*val_ratio), 1, round(exo_trials*(1-val_ratio)), -1)
-endo_stim = np.multiply(endo_cue, endo_valid)
-exo_stim = np.multiply(exo_cue, exo_valid)
+endo_stim = np.multiply(endo_cue, endo_valid).tolist()
+exo_stim = np.multiply(exo_cue, exo_valid).tolist()
 print("Trials generated.")
 
-for trial_type in type:
-    fix(mywin, fixation, fix_time)
+start(mywin, expInfo)
+
+for trial_type in cue_type:
+    fix(mywin, fixation, fix_time, left_rf, right_rf)
 
     if trial_type == 1: # endogenous
         cue = endo_cue.pop()
         valid = endo_valid.pop()
         stim = endo_stim.pop()
 
-        cue_time = endo_cue
-        stim_time = endo_stim
-        res_time = endo_res
-        endo(mywin, fixation, left_rf, right_rf, arrow, stimulus)
+        response, reaction_time = endo(mywin, left_rf, right_rf, arrow,
+                                        stimulus, cue, stim)
+        
+        # save data
+        dataFile.write('%i,%i,%i,%i,%i,%.5f\n' %(trial_type, cue, valid, stim,
+                                                  response, reaction_time))
 
     else: # exogenous
         cue = exo_cue.pop()
         valid = exo_valid.pop()
         stim = exo_stim.pop()
-        cue_time = exo_cue
-        stim_time = exo_stim
-        res_time = exo_res
-#draw the stimuli and update the window
-fixation.draw()
-left_rf.draw()
-right_rf.draw()
-stimulus.draw()
-arrow.draw()
-exo_rect.draw()
-trigger.draw()
 
-mywin.flip()
-#pause, so you get a chance to see it!
-core.wait(3.0)
+        response, reaction_time = exo(mywin, left_rf, right_rf, stimulus, 
+                                      exo_rect, cue, stim)
+
+        # save data
+        dataFile.write('%i,%i,%i,%i,%i,%.5f\n' %(trial_type, cue, valid, stim,
+                                                  response, reaction_time))
+
+
+finish(mywin, expInfo)
+dataFile.close()

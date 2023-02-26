@@ -26,20 +26,20 @@ test_exo_trials = 10
 # experiment
 fix_time = 2
 val_ratio = 0.8
-stimulus_size = 50
+stimulus_size = 20
 stimulus_pos = 500
 
 endo_trials = 10
 endo_cue_time = 1
-endo_stim_time = 0.3
+endo_stim_time = 0.1
 endo_ics = 1
 endo_res = 2
 
 exo_trials = 10
 exo_cue_flash = 2
-exo_cue_flash_ontime = 0.3
-exo_cue_flash_offtime = 0.3
-exo_stim_time = 0.3
+exo_cue_flash_ontime = 0.1
+exo_cue_flash_offtime = 0.1
+exo_stim_time = 0.1
 exo_ics = 0.5
 exo_res = 2
 

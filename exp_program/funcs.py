@@ -17,15 +17,16 @@ def make_trial(num1, code1, num2, code2):
     np.random.shuffle(trial)
     return trial.tolist()
 
-def fix(mywin, fixation, fix_time, left_rf, right_rf):
+def fix(mywin, fixation, fix_time, left_rf, right_rf, trigger):
     fixation.draw()
     left_rf.draw()
     right_rf.draw()
+    trigger.draw()
     mywin.flip()
     core.wait(fix_time)
 
 
-def endo(mywin, left_rf, right_rf, arrow, stimulus, cue, stim):
+def endo(mywin, left_rf, right_rf, arrow, stimulus, trigger, cue, stim):
     
     if cue == -1:
         arrow.setVertices(arrow_left)
@@ -50,6 +51,7 @@ def endo(mywin, left_rf, right_rf, arrow, stimulus, cue, stim):
     left_rf.draw()
     right_rf.draw()
     stimulus.draw()
+    trigger.draw()
     mywin.flip()
     core.wait(endo_stim_time)
 
@@ -69,7 +71,7 @@ def endo(mywin, left_rf, right_rf, arrow, stimulus, cue, stim):
     return response, reaction_time
 
 
-def exo(mywin, left_rf, right_rf, stimulus, exo_rect, cue, stim):
+def exo(mywin, left_rf, right_rf, stimulus, trigger, exo_rect, cue, stim):
     
     exo_rect.setPos((cue*rf_pos, 0))
     stimulus.setPos((stim*stimulus_pos, 0))
@@ -97,6 +99,7 @@ def exo(mywin, left_rf, right_rf, stimulus, exo_rect, cue, stim):
     left_rf.draw()
     right_rf.draw()
     stimulus.draw()
+    trigger.draw()
     mywin.flip()
     core.wait(exo_stim_time)
 

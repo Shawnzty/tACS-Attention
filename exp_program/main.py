@@ -26,7 +26,7 @@ dataFile.write('type, cue, valid, stimulus, response, reaction time\n')
 
 #create a window
 mywin = visual.Window([screen_width, screen_height], 
-                      fullscr=True, screen=1, monitor="testMonitor", 
+                      fullscr=True, screen=0, monitor="testMonitor", 
                       color=[-1,-1,-1], units="pix")
 print("Window created.")
 
@@ -55,7 +55,7 @@ print("Trials generated.")
 start(mywin, expInfo)
 
 for trial_type in cue_type:
-    fix(mywin, fixation, fix_time, left_rf, right_rf)
+    fix(mywin, fixation, fix_time, left_rf, right_rf, trigger)
 
     if trial_type == 1: # endogenous
         cue = endo_cue.pop()
@@ -63,7 +63,7 @@ for trial_type in cue_type:
         stim = endo_stim.pop()
 
         response, reaction_time = endo(mywin, left_rf, right_rf, arrow,
-                                        stimulus, cue, stim)
+                                         stimulus, trigger, cue, stim)
         
         # save data
         dataFile.write('%i,%i,%i,%i,%i,%.5f\n' %(trial_type, cue, valid, stim,
@@ -75,7 +75,7 @@ for trial_type in cue_type:
         stim = exo_stim.pop()
 
         response, reaction_time = exo(mywin, left_rf, right_rf, stimulus, 
-                                      exo_rect, cue, stim)
+                                      trigger, exo_rect, cue, stim)
 
         # save data
         dataFile.write('%i,%i,%i,%i,%i,%.5f\n' %(trial_type, cue, valid, stim,

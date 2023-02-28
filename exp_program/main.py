@@ -12,7 +12,7 @@ expInfo['dateStr'] = data.getDateStr()  # add the current time
 # present a dialogue to change params
 dlg = gui.DlgFromDict(expInfo, title='Info', fixed=['dateStr'])
 if dlg.OK:
-    filename = expInfo['Name'] + "_" + expInfo['Session'] + "_" + expInfo['dateStr']
+    filename = expInfo['Name'] + "_test_" + expInfo['dateStr'] if expInfo['Test']==1 else expInfo['Name'] + "_" + expInfo['Session'] + "_" + expInfo['dateStr']
 else:
     core.quit()  # the user hit cancel so exit
 dataFile = open('data/'+filename+'.csv', 'w')  # a simple text file with 'comma-separated-values'
@@ -21,12 +21,12 @@ dataFile = open('data/'+filename+'.csv', 'w')  # a simple text file with 'comma-
     valid: -1 = invalid, 1 = valid
     stimulus: -1 = left, 1 = right
     response: 0 = no response, 1 = has response
-    reaction time: in ms '''
+    reaction time: in second '''
 dataFile.write('type, cue, valid, stimulus, response, reaction time\n')
 
 #create a window
 mywin = visual.Window([screen_width, screen_height], 
-                      fullscr=True, screen=0, monitor="testMonitor", 
+                      fullscr=True, screen=1, monitor="testMonitor", 
                       color=[-1,-1,-1], units="pix")
 print("Window created.")
 
@@ -45,14 +45,12 @@ trigger = visual.Rect(mywin, pos=((screen_width-trigger_sizex)/2, trigger_ypos),
 print("Objects created.")
 
 # generate trials
-cue_type = make_trials(endo_trials, 1, exo_trials, 2)
-endo_cue = make_trials(int(endo_trials/2), 1, int(endo_trials/2), -1)
-exo_cue = make_trials(int(exo_trials/2), 1, int(exo_trials/2), -1)
-endo_valid = make_trials(round(endo_trials*val_ratio), 1, round(endo_trials*(1-val_ratio)), -1)
-exo_valid = make_trials(round(exo_trials*val_ratio), 1, round(exo_trials*(1-val_ratio)), -1)
-endo_stim = np.multiply(endo_cue, endo_valid).tolist()
-exo_stim = np.multiply(exo_cue, exo_valid).tolist()
+if expInfo['Test'] == 0:
+    cue_type, endo_cue, exo_cue, endo_valid, exo_valid, endo_stim, exo_stim = generate_all_trials(endo_trials, exo_trials, val_ratio)
+else:
+    cue_type, endo_cue, exo_cue, endo_valid, exo_valid, endo_stim, exo_stim = generate_all_trials(test_endo_trials, test_exo_trials, test_val_ratio)
 print("Trials generated.")
+
 
 start(mywin, expInfo)
 

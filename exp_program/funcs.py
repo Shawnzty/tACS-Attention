@@ -2,7 +2,17 @@ import numpy as np
 from psychopy import core, visual, gui, data, event
 from settings import *
 
-def make_trials(num1, code1, num2, code2):
+def generate_all_trials(endo_trials, exo_trials, val_ratio):
+    cue_type = make_trial(endo_trials, 1, exo_trials, 2)
+    endo_cue = make_trial(int(endo_trials/2), 1, int(endo_trials/2), -1)
+    exo_cue = make_trial(int(exo_trials/2), 1, int(exo_trials/2), -1)
+    endo_valid = make_trial(round(endo_trials*val_ratio), 1, round(endo_trials*(1-val_ratio)), -1)
+    exo_valid = make_trial(round(exo_trials*val_ratio), 1, round(exo_trials*(1-val_ratio)), -1)
+    endo_stim = np.multiply(endo_cue, endo_valid).tolist()
+    exo_stim = np.multiply(exo_cue, exo_valid).tolist()
+    return cue_type, endo_cue, exo_cue, endo_valid, exo_valid, endo_stim, exo_stim
+
+def make_trial(num1, code1, num2, code2):
     trial = np.concatenate((code1*np.ones(num1, dtype=int), code2*np.ones(num2, dtype=int)))
     np.random.shuffle(trial)
     return trial.tolist()

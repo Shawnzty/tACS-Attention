@@ -1,0 +1,26 @@
+import serial
+import time
+
+# Set the serial port and baud rate
+ser = serial.Serial('COM3', 9600)
+
+# Loop forever
+for i in range(3):
+    # Turn on the LED for 1 second
+    ser.write(b'H')
+    time.sleep(1)
+
+    # Turn off the LED for 5 seconds
+    ser.write(b'L')
+    time.sleep(5)
+
+    # Turn on the LED for 1 second
+    ser.write(b'H')
+    time.sleep(1)
+
+    # Turn off the LED for 5 seconds
+    ser.write(b'L')
+    time.sleep(5)
+
+# Close the serial connection
+ser.close()

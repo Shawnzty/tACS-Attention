@@ -3,6 +3,8 @@ from psychopy.tools.filetools import fromFile, toFile
 import numpy as np
 from settings import *
 from funcs import *
+import serial
+import time
 
 # dilogue box
 ''' Session: before, during, after
@@ -50,6 +52,9 @@ if expInfo['Test'] == 0:
 else:
     cue_type, endo_cue, exo_cue, endo_valid, exo_valid, endo_stim, exo_stim = generate_all_trials(test_endo_trials, test_exo_trials, test_val_ratio)
 print("Trials generated.")
+
+trigger = serial.Serial('COM3', 9600)
+print("Serial port for Arduino opened.")
 
 
 start(mywin, expInfo)

@@ -1,6 +1,8 @@
 import numpy as np
 from psychopy import core, visual, gui, data, event
 from settings import *
+import serial
+import time
 
 def generate_all_trials(endo_trials, exo_trials, val_ratio):
     cue_type = make_trial(endo_trials, 1, exo_trials, 2)
@@ -21,9 +23,10 @@ def fix(mywin, fixation, fix_time, left_rf, right_rf, trigger):
     fixation.draw()
     left_rf.draw()
     right_rf.draw()
-    trigger.draw()
+    trigger.write(b'H')
     mywin.flip()
     core.wait(fix_time)
+    trigger.write(b'L')
 
 
 def endo(mywin, fixation, left_rf, right_rf, arrow, stimulus, trigger, cue, stim):
@@ -53,9 +56,10 @@ def endo(mywin, fixation, left_rf, right_rf, arrow, stimulus, trigger, cue, stim
     right_rf.draw()
     fixation.draw()
     stimulus.draw()
-    trigger.draw()
+    trigger.write(b'H')
     mywin.flip()
     core.wait(endo_stim_time)
+    trigger.write(b'L')
 
     # wait for response
     left_rf.draw()
@@ -106,9 +110,10 @@ def exo(mywin, fixation, left_rf, right_rf, stimulus, trigger, exo_rect, cue, st
     right_rf.draw()
     fixation.draw()
     stimulus.draw()
-    trigger.draw()
+    trigger.write(b'H')
     mywin.flip()
     core.wait(exo_stim_time)
+    trigger.write(b'L')
 
 
     # wait for response

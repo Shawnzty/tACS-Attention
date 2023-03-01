@@ -26,7 +26,7 @@ dataFile.write('type, cue, valid, stimulus, response, reaction time\n')
 
 #create a window
 mywin = visual.Window([screen_width, screen_height], 
-                      fullscr=True, screen=0, monitor="testMonitor", 
+                      fullscr=True, screen=1, monitor="testMonitor", 
                       color=[-1,-1,-1], units="pix")
 print("Window created.")
 
@@ -62,7 +62,7 @@ for trial_type in cue_type:
         valid = endo_valid.pop()
         stim = endo_stim.pop()
 
-        response, reaction_time = endo(mywin, left_rf, right_rf, arrow,
+        response, reaction_time = endo(mywin, fixation, left_rf, right_rf, arrow,
                                          stimulus, trigger, cue, stim)
         
         # save data
@@ -74,7 +74,7 @@ for trial_type in cue_type:
         valid = exo_valid.pop()
         stim = exo_stim.pop()
 
-        response, reaction_time = exo(mywin, left_rf, right_rf, stimulus, 
+        response, reaction_time = exo(mywin, fixation, left_rf, right_rf, stimulus,
                                       trigger, exo_rect, cue, stim)
 
         # save data

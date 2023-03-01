@@ -6,11 +6,12 @@ import numpy as np
 # display settings
 # 1512 982 for mbp14
 # 3840 2160 for dell
-screen_width = 1512
+# 5129 1440 for Philips
+screen_width = 5120
 screen_width_mm = 1193.5
-screen_height = 982
-distance = 800 # distance between screen and participant in unit of mm
-FoV = 120 # field of view in unit of degree
+screen_height = 1440
+distance = 480 # distance between screen and participant in unit of mm
+FoV = 90 # field of view in unit of degree
 beta = 0.5*FoV -  (180/math.pi) * np.arcsin(((1800-distance)/1800) * math.sin(math.radians(180-0.5*FoV))) # beta is the angle between the center of the screen and the center of the RF
 l = 10 * math.pi * beta
 
@@ -23,9 +24,9 @@ arrow_left = ((0, 15), (-80, 15), (-80, 40), (-140, 0), (-80, -40), (-80, -15), 
 arrow_right = ((0, 15), (80, 15), (80, 40), (140, 0), (80, -40), (80, -15), (0, -15))
 
 # trigger
-trigger_sizex = 60
-trigger_sizey = 100
-trigger_ypos = -200
+trigger_sizex = 30
+trigger_sizey = 60
+trigger_ypos = -1*(screen_height/2 - trigger_sizey/2 - 100)
 
 # test
 test_endo_trials = 4
@@ -52,7 +53,7 @@ exo_stim_time = 0.1
 exo_ics = 0.5
 exo_res = 2
 
-# size of objects
-
+# text
+text_size = 35
 
 # Finish

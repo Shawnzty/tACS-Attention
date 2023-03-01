@@ -26,7 +26,7 @@ def fix(mywin, fixation, fix_time, left_rf, right_rf, trigger):
     core.wait(fix_time)
 
 
-def endo(mywin, left_rf, right_rf, arrow, stimulus, trigger, cue, stim):
+def endo(mywin, fixation, left_rf, right_rf, arrow, stimulus, trigger, cue, stim):
     
     if cue == -1:
         arrow.setVertices(arrow_left)
@@ -44,12 +44,14 @@ def endo(mywin, left_rf, right_rf, arrow, stimulus, trigger, cue, stim):
     # wait for stimulus
     left_rf.draw()
     right_rf.draw()
+    fixation.draw()
     mywin.flip()
     core.wait(endo_ics)
 
     # draw stimulus and flip window
     left_rf.draw()
     right_rf.draw()
+    fixation.draw()
     stimulus.draw()
     trigger.draw()
     mywin.flip()
@@ -58,6 +60,7 @@ def endo(mywin, left_rf, right_rf, arrow, stimulus, trigger, cue, stim):
     # wait for response
     left_rf.draw()
     right_rf.draw()
+    fixation.draw()
     mywin.flip()
     response = 0
     reaction_time = 0
@@ -71,7 +74,7 @@ def endo(mywin, left_rf, right_rf, arrow, stimulus, trigger, cue, stim):
     return response, reaction_time
 
 
-def exo(mywin, left_rf, right_rf, stimulus, trigger, exo_rect, cue, stim):
+def exo(mywin, fixation, left_rf, right_rf, stimulus, trigger, exo_rect, cue, stim):
     
     exo_rect.setPos((cue*rf_pos, 0))
     stimulus.setPos((stim*stimulus_pos, 0))
@@ -80,24 +83,28 @@ def exo(mywin, left_rf, right_rf, stimulus, trigger, exo_rect, cue, stim):
     for i in range(exo_cue_flash):
         left_rf.draw()
         right_rf.draw()
+        fixation.draw()
         exo_rect.draw()
         mywin.flip()
         core.wait(exo_cue_flash_ontime)
 
         left_rf.draw()
         right_rf.draw()
+        fixation.draw()
         mywin.flip()
         core.wait(exo_cue_flash_offtime)
 
     # wait for stimulus
     left_rf.draw()
     right_rf.draw()
+    fixation.draw()
     mywin.flip()
     core.wait(exo_ics)
 
     # draw stimulus and flip window
     left_rf.draw()
     right_rf.draw()
+    fixation.draw()
     stimulus.draw()
     trigger.draw()
     mywin.flip()
@@ -107,6 +114,7 @@ def exo(mywin, left_rf, right_rf, stimulus, trigger, exo_rect, cue, stim):
     # wait for response
     left_rf.draw()
     right_rf.draw()
+    fixation.draw()
     mywin.flip()
     response = 0
     reaction_time = 0
@@ -124,9 +132,10 @@ def start(mywin, expInfo):
     # display instructions and wait
     message1 = visual.TextStim(mywin, pos=[0,+100],
         text="Hello, " + expInfo['Name'] + "!\n Welcome to the experiment.")
-    message2 = visual.TextStim(mywin, pos=[0,-100],text='Please hit the space when ready.')
-    message1.setSize(30)
-    message2.setSize(30)
+    message2 = visual.TextStim(mywin, pos=[0,-100],
+                               text='Please hit the space to start.')
+    message1.size = [None, 35]
+    message2.setSize(text_size)
     message1.draw()
     message2.draw()
     mywin.flip()
@@ -134,10 +143,10 @@ def start(mywin, expInfo):
 
 
 def finish(mywin, expInfo):
-    # display instructions and wait
+    # display end message and quit
     message1 = visual.TextStim(mywin, pos=[0,0],
         text="Thank you for participating, " + expInfo['Name'] + "!")
-    message1.setSize(30)
+    message1.setSize(text_size)
     message1.draw()
     mywin.flip()
     core.wait(2)

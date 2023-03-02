@@ -36,16 +36,18 @@ test_val_ratio = 0.75
 # experiment
 fix_time = 2
 val_ratio = 0.8
-stimulus_size = 20
+stimulus_FoV = 2 # in degree
+dr = (math.sin(math.radians(beta)) / math.sin(math.radians(180-0.5*FoV))) * 1800
+stimulus_size = math.radians(stimulus_FoV) * dr
 stimulus_pos = rf_pos
 
-endo_trials = 10
+endo_trials = 50
 endo_cue_time = 1
-endo_stim_time = 0.1
+endo_stim_time = 0.05
 endo_ics = 1
 endo_res = 2
 
-exo_trials = 10
+exo_trials = 50
 exo_cue_flash = 2
 exo_cue_flash_ontime = 0.1
 exo_cue_flash_offtime = 0.1

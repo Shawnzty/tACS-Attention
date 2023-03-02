@@ -53,7 +53,7 @@ else:
     cue_type, endo_cue, exo_cue, endo_valid, exo_valid, endo_stim, exo_stim = generate_all_trials(test_endo_trials, test_exo_trials, test_val_ratio)
 print("Trials generated.")
 
-trigger = serial.Serial('COM3', 9600)
+trigger = serial.Serial('COM11', 9600) # lab 11, office 3
 print("Serial port for Arduino opened.")
 
 

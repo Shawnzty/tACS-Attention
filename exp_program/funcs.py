@@ -12,7 +12,11 @@ def generate_all_trials(endo_trials, exo_trials, val_ratio):
     exo_valid = make_trial(round(exo_trials*val_ratio), 1, round(exo_trials*(1-val_ratio)), -1)
     endo_stim = np.multiply(endo_cue, endo_valid).tolist()
     exo_stim = np.multiply(exo_cue, exo_valid).tolist()
-    return cue_type, endo_cue, exo_cue, endo_valid, exo_valid, endo_stim, exo_stim
+    endo_ics = np.linspace(endo_ics_min, endo_ics_max, num=endo_trials)
+    np.random.shuffle(endo_ics)
+    exo_ics = np.linspace(exo_ics_min, exo_ics_max, num=exo_trials)
+    np.random.shuffle(exo_ics)
+    return cue_type, endo_cue, exo_cue, endo_valid, exo_valid, endo_stim, exo_stim, endo_ics.tolist(), exo_ics.tolist()
 
 def make_trial(num1, code1, num2, code2):
     trial = np.concatenate((code1*np.ones(num1, dtype=int), code2*np.ones(num2, dtype=int)))
@@ -29,7 +33,7 @@ def fix(mywin, fixation, fix_time, left_rf, right_rf, trigger):
     trigger.write(b'L')
 
 
-def endo(mywin, fixation, left_rf, right_rf, arrow, stimulus, trigger, cue, stim):
+def endo(mywin, fixation, left_rf, right_rf, arrow, stimulus, trigger, cue, stim, ics):
     
     if cue == -1:
         arrow.setVertices(arrow_left)
@@ -49,7 +53,7 @@ def endo(mywin, fixation, left_rf, right_rf, arrow, stimulus, trigger, cue, stim
     right_rf.draw()
     fixation.draw()
     mywin.flip()
-    core.wait(endo_ics)
+    core.wait(ics)
 
     # draw stimulus and flip window
     left_rf.draw()
@@ -58,7 +62,7 @@ def endo(mywin, fixation, left_rf, right_rf, arrow, stimulus, trigger, cue, stim
     stimulus.draw()
     trigger.write(b'H')
     mywin.flip()
-    core.wait(endo_stim_time)
+    core.wait(stim_time)
     trigger.write(b'L')
 
     # wait for response
@@ -78,7 +82,7 @@ def endo(mywin, fixation, left_rf, right_rf, arrow, stimulus, trigger, cue, stim
     return response, reaction_time
 
 
-def exo(mywin, fixation, left_rf, right_rf, stimulus, trigger, exo_rect, cue, stim):
+def exo(mywin, fixation, left_rf, right_rf, stimulus, trigger, exo_rect, cue, stim, ics):
     
     exo_rect.setPos((cue*rf_pos, 0))
     stimulus.setPos((stim*stimulus_pos, 0))
@@ -103,7 +107,7 @@ def exo(mywin, fixation, left_rf, right_rf, stimulus, trigger, exo_rect, cue, st
     right_rf.draw()
     fixation.draw()
     mywin.flip()
-    core.wait(exo_ics)
+    core.wait(ics)
 
     # draw stimulus and flip window
     left_rf.draw()
@@ -112,7 +116,7 @@ def exo(mywin, fixation, left_rf, right_rf, stimulus, trigger, exo_rect, cue, st
     stimulus.draw()
     trigger.write(b'H')
     mywin.flip()
-    core.wait(exo_stim_time)
+    core.wait(stim_time)
     trigger.write(b'L')
 
 

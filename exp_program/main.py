@@ -22,9 +22,10 @@ dataFile = open('data/'+filename+'.csv', 'w')  # a simple text file with 'comma-
     cue: -1 = left, 1 = right
     valid: -1 = invalid, 1 = valid
     stimulus: -1 = left, 1 = right
+    interval between cue and stimulus: in second
     response: 0 = no response, 1 = has response
     reaction time: in second '''
-dataFile.write('type, cue, valid, stimulus, response, reaction time\n')
+dataFile.write('type, cue, valid, stimulus, interval between cue and stimulus, response, reaction time\n')
 
 #create a window
 mywin = visual.Window([screen_width, screen_height], 
@@ -41,16 +42,16 @@ stimulus = visual.Circle(mywin, pos=(stimulus_pos, 0), size=stimulus_size, lineC
 arrow = visual.ShapeStim(mywin, vertices=((0, 15), (-80, 15), (-80, 40), (-140, 0), (-80, -40), (-80, -15), (0, -15)),
                          fillColor='white', lineColor=None)
 arrow.setVertices(arrow_right)
-exo_rect = visual.Rect(mywin, pos=(rf_pos, 0), size=rf_size, lineColor=None, fillColor='white')
+exo_rect = visual.Rect(mywin, pos=(rf_pos, 0), size=rf_size, lineColor='white', fillColor=None, lineWidth=50)
 trigger = visual.Rect(mywin, pos=((screen_width-trigger_sizex)/2, trigger_ypos),
                        size=(trigger_sizex,trigger_sizey), lineColor=None, fillColor='white')
 print("Objects created.")
 
 # generate trials
 if expInfo['Test'] == 0:
-    cue_type, endo_cue, exo_cue, endo_valid, exo_valid, endo_stim, exo_stim = generate_all_trials(endo_trials, exo_trials, val_ratio)
+    cue_type, endo_cue, exo_cue, endo_valid, exo_valid, endo_stim, exo_stim, endo_ics, exo_ics = generate_all_trials(endo_trials, exo_trials, val_ratio)
 else:
-    cue_type, endo_cue, exo_cue, endo_valid, exo_valid, endo_stim, exo_stim = generate_all_trials(test_endo_trials, test_exo_trials, test_val_ratio)
+    cue_type, endo_cue, exo_cue, endo_valid, exo_valid, endo_stim, exo_stim, endo_ics, exo_ics = generate_all_trials(test_endo_trials, test_exo_trials, test_val_ratio)
 print("Trials generated.")
 
 trigger = serial.Serial('COM11', 9600) # lab 11, office 3
@@ -66,24 +67,26 @@ for trial_type in cue_type:
         cue = endo_cue.pop()
         valid = endo_valid.pop()
         stim = endo_stim.pop()
+        ics  = endo_ics.pop()
 
         response, reaction_time = endo(mywin, fixation, left_rf, right_rf, arrow,
-                                         stimulus, trigger, cue, stim)
+                                         stimulus, trigger, cue, stim, ics)
         
         # save data
-        dataFile.write('%i,%i,%i,%i,%i,%.5f\n' %(trial_type, cue, valid, stim,
+        dataFile.write('%i,%i,%i,%i,%i,%i,%.5f\n' %(trial_type, cue, valid, stim, ics,
                                                   response, reaction_time))
 
     else: # exogenous
         cue = exo_cue.pop()
         valid = exo_valid.pop()
         stim = exo_stim.pop()
+        ics  = exo_ics.pop()
 
         response, reaction_time = exo(mywin, fixation, left_rf, right_rf, stimulus,
-                                      trigger, exo_rect, cue, stim)
+                                      trigger, exo_rect, cue, stim, ics)
 
         # save data
-        dataFile.write('%i,%i,%i,%i,%i,%.5f\n' %(trial_type, cue, valid, stim,
+        dataFile.write('%i,%i,%i,%i,%i,%i,%.5f\n' %(trial_type, cue, valid, stim, ics,
                                                   response, reaction_time))
 
 

@@ -65,7 +65,7 @@ for row in all_trials:
     fix(mywin, fixation, fix_time, left_rf, right_rf, trigger)
 
     if row[0] == 1: # endogenous
-        response, reaction_time = endo(mywin, fixation, left_rf, right_rf, arrow,
+        response, reaction_time = endo(mywin, left_rf, right_rf, arrow,
                                          stimulus, trigger, row[1], row[3], row[4])
     
         # save data

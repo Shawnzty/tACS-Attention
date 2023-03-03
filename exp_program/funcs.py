@@ -43,7 +43,7 @@ def fix(mywin, fixation, fix_time, left_rf, right_rf, trigger):
     trigger.write(b'L')
 
 
-def endo(mywin, fixation, left_rf, right_rf, arrow, stimulus, trigger, cue, stim, ics):
+def endo(mywin, left_rf, right_rf, arrow, stimulus, trigger, cue, stim, ics):
     
     if cue == -1:
         arrow.setVertices(arrow_left)

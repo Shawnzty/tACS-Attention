@@ -65,24 +65,14 @@ for row in all_trials:
     fix(mywin, fixation, fix_time, left_rf, right_rf, trigger)
 
     if row[0] == 1: # endogenous
-        cue = endo_cue.pop()
-        valid = endo_valid.pop()
-        stim = endo_stim.pop()
-        ics  = endo_ics.pop()
-
         response, reaction_time = endo(mywin, fixation, left_rf, right_rf, arrow,
                                          stimulus, trigger, row[1], row[3], row[4])
-        
+    
         # save data
         dataFile.write('%i,%i,%i,%i,%i,%i,%.5f\n' %(row[0], row[1], row[2], row[3],
                                                      row[4], response, reaction_time))
 
     else: # exogenous
-        cue = exo_cue.pop()
-        valid = exo_valid.pop()
-        stim = exo_stim.pop()
-        ics  = exo_ics.pop()
-
         response, reaction_time = exo(mywin, fixation, left_rf, right_rf, stimulus,
                                       trigger, exo_rect, row[1], row[3], row[4])
 

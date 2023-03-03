@@ -5,22 +5,32 @@ import serial
 import time
 
 def generate_all_trials(endo_trials, exo_trials, val_ratio):
+
     cue_type = make_trial(endo_trials, 1, exo_trials, 2)
-    endo_cue = make_trial(int(endo_trials/2), 1, int(endo_trials/2), -1)
-    exo_cue = make_trial(int(exo_trials/2), 1, int(exo_trials/2), -1)
-    endo_valid = make_trial(round(endo_trials*val_ratio), 1, round(endo_trials*(1-val_ratio)), -1)
-    exo_valid = make_trial(round(exo_trials*val_ratio), 1, round(exo_trials*(1-val_ratio)), -1)
-    endo_stim = np.multiply(endo_cue, endo_valid).tolist()
-    exo_stim = np.multiply(exo_cue, exo_valid).tolist()
-    endo_ics = np.linspace(endo_ics_min, endo_ics_max, num=endo_trials)
-    np.random.shuffle(endo_ics)
-    exo_ics = np.linspace(exo_ics_min, exo_ics_max, num=exo_trials)
-    np.random.shuffle(exo_ics)
-    return cue_type, endo_cue, exo_cue, endo_valid, exo_valid, endo_stim, exo_stim, endo_ics.tolist(), exo_ics.tolist()
+
+    endo_cue = make_trial(round(endo_trials/2), 1, round(endo_trials/2), -1)
+    exo_cue = make_trial(round(exo_trials/2), 1, round(exo_trials/2), -1)
+    all_cue = np.concatenate((endo_cue, exo_cue))
+
+    valid_unit = make_trial(round(endo_trials*val_ratio/2), 1, round(endo_trials*(1-val_ratio)/2), -1)
+    all_valid = np.concatenate((valid_unit, valid_unit, valid_unit, valid_unit))
+
+    all_stim = np.multiply(all_cue, all_valid)
+
+    endo_ics_unit = np.concatenate((np.linspace(endo_ics_min, endo_ics_max, num=round(endo_trials*val_ratio/2)), 
+                                np.linspace(endo_ics_min, endo_ics_max, num=round(endo_trials*(1-val_ratio)/2))))
+    endo_ics = np.concatenate((endo_ics_unit, endo_ics_unit))
+    exo_ics_unit = np.concatenate((np.linspace(exo_ics_min, exo_ics_max, num=round(exo_trials*val_ratio/2)), 
+                                np.linspace(exo_ics_min, exo_ics_max, num=round(exo_trials*(1-val_ratio)/2))))
+    exo_ics = np.concatenate((exo_ics_unit, exo_ics_unit))
+    all_ics = np.concatenate((endo_ics, exo_ics))
+
+    all_trials = np.vstack((cue_type, all_cue, all_valid, all_stim, all_ics)).T
+    np.random.shuffle(all_trials)
+    return all_trials
 
 def make_trial(num1, code1, num2, code2):
     trial = np.concatenate((code1*np.ones(num1, dtype=int), code2*np.ones(num2, dtype=int)))
-    np.random.shuffle(trial)
     return trial.tolist()
 
 def fix(mywin, fixation, fix_time, left_rf, right_rf, trigger):
@@ -88,19 +98,10 @@ def exo(mywin, fixation, left_rf, right_rf, stimulus, trigger, exo_rect, cue, st
     stimulus.setPos((stim*stimulus_pos, 0))
 
     # draw cue and flip window
-    for i in range(exo_cue_flash):
-        left_rf.draw()
-        right_rf.draw()
-        fixation.draw()
-        exo_rect.draw()
-        mywin.flip()
-        core.wait(exo_cue_flash_ontime)
-
-        left_rf.draw()
-        right_rf.draw()
-        fixation.draw()
-        mywin.flip()
-        core.wait(exo_cue_flash_offtime)
+    if cue == 1:
+        show_exo_cue(mywin, fixation, left_rf, exo_rect)
+    else:
+        show_exo_cue(mywin, fixation, right_rf, exo_rect)
 
     # wait for stimulus
     left_rf.draw()
@@ -136,6 +137,18 @@ def exo(mywin, fixation, left_rf, right_rf, stimulus, trigger, exo_rect, cue, st
 
     return response, reaction_time
 
+def show_exo_cue(mywin, fixation, rf, exo_rect):
+    for i in range(exo_cue_flash):
+        rf.draw()
+        fixation.draw()
+        exo_rect.draw()
+        mywin.flip()
+        core.wait(exo_cue_flash_ontime)
+        
+        rf.draw()
+        fixation.draw()
+        mywin.flip()
+        core.wait(exo_cue_flash_offtime)
 
 def start(mywin, expInfo):
     # display instructions and wait

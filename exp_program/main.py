@@ -49,10 +49,11 @@ print("Objects created.")
 
 # generate trials
 if expInfo['Test'] == 0:
-    cue_type, endo_cue, exo_cue, endo_valid, exo_valid, endo_stim, exo_stim, endo_ics, exo_ics = generate_all_trials(endo_trials, exo_trials, val_ratio)
+    all_trials = generate_all_trials(endo_trials, exo_trials, val_ratio)
 else:
-    cue_type, endo_cue, exo_cue, endo_valid, exo_valid, endo_stim, exo_stim, endo_ics, exo_ics = generate_all_trials(test_endo_trials, test_exo_trials, test_val_ratio)
+    all_trials = generate_all_trials(test_endo_trials, test_exo_trials, test_val_ratio)
 print("Trials generated.")
+print(all_trials)
 
 trigger = serial.Serial('COM11', 9600) # lab 11, office 3
 print("Serial port for Arduino opened.")
@@ -60,21 +61,21 @@ print("Serial port for Arduino opened.")
 
 start(mywin, expInfo)
 
-for trial_type in cue_type:
+for row in all_trials:
     fix(mywin, fixation, fix_time, left_rf, right_rf, trigger)
 
-    if trial_type == 1: # endogenous
+    if row[0] == 1: # endogenous
         cue = endo_cue.pop()
         valid = endo_valid.pop()
         stim = endo_stim.pop()
         ics  = endo_ics.pop()
 
         response, reaction_time = endo(mywin, fixation, left_rf, right_rf, arrow,
-                                         stimulus, trigger, cue, stim, ics)
+                                         stimulus, trigger, row[1], row[3], row[4])
         
         # save data
-        dataFile.write('%i,%i,%i,%i,%i,%i,%.5f\n' %(trial_type, cue, valid, stim, ics,
-                                                  response, reaction_time))
+        dataFile.write('%i,%i,%i,%i,%i,%i,%.5f\n' %(row[0], row[1], row[2], row[3],
+                                                     row[4], response, reaction_time))
 
     else: # exogenous
         cue = exo_cue.pop()
@@ -83,11 +84,11 @@ for trial_type in cue_type:
         ics  = exo_ics.pop()
 
         response, reaction_time = exo(mywin, fixation, left_rf, right_rf, stimulus,
-                                      trigger, exo_rect, cue, stim, ics)
+                                      trigger, exo_rect, row[1], row[3], row[4])
 
         # save data
-        dataFile.write('%i,%i,%i,%i,%i,%i,%.5f\n' %(trial_type, cue, valid, stim, ics,
-                                                  response, reaction_time))
+        dataFile.write('%i,%i,%i,%i,%i,%i,%.5f\n' %(row[0], row[1], row[2], row[3],
+                                                     row[4], response, reaction_time))
 
 
 finish(mywin, expInfo)

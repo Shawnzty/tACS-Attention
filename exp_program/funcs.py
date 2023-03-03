@@ -61,14 +61,12 @@ def endo(mywin, fixation, left_rf, right_rf, arrow, stimulus, trigger, cue, stim
     # wait for stimulus
     left_rf.draw()
     right_rf.draw()
-    fixation.draw()
     mywin.flip()
     core.wait(ics)
 
     # draw stimulus and flip window
     left_rf.draw()
     right_rf.draw()
-    fixation.draw()
     stimulus.draw()
     trigger.write(b'H')
     mywin.flip()
@@ -78,7 +76,6 @@ def endo(mywin, fixation, left_rf, right_rf, arrow, stimulus, trigger, cue, stim
     # wait for response
     left_rf.draw()
     right_rf.draw()
-    fixation.draw()
     mywin.flip()
     response = 0
     reaction_time = 0

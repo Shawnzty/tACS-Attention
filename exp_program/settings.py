@@ -52,8 +52,8 @@ exo_trials = 50
 exo_cue_flash = 3
 exo_cue_flash_ontime = 0.05
 exo_cue_flash_offtime = 0.05
-exo_ics_min = 0.5
-exo_ics_max = 1
+exo_ics_min = 0.3
+exo_ics_max = 0.7
 exo_res = 2
 
 # text

@@ -49,9 +49,9 @@ endo_ics_max = 1.5
 endo_res = 2
 
 exo_trials = 50
-exo_cue_flash = 3
-exo_cue_flash_ontime = 0.05
-exo_cue_flash_offtime = 0.05
+exo_cue_flash = 2
+exo_cue_flash_ontime = 0.03
+exo_cue_flash_offtime = 0.03
 exo_ics_min = 0.3
 exo_ics_max = 0.7
 exo_res = 2

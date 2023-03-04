@@ -35,7 +35,7 @@ val_ratio = 0.8
 dr = (math.sin(math.radians(beta)) / math.sin(math.radians(180-0.5*FoV))) * 1800 
 
 # receptive field
-rf_FoV = 10 # in degree
+rf_FoV = 20 # in degree
 rf_size = math.radians(rf_FoV) * dr
 rf_pos = l*screen_width/screen_width_mm
 

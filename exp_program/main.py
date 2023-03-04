@@ -53,7 +53,9 @@ if expInfo['Test'] == 0:
 else:
     all_trials = generate_all_trials(test_endo_trials, test_exo_trials, test_val_ratio)
 print("Trials generated.")
-print(all_trials)
+
+refresh_rate = mywin.getActualFrameRate()
+print("Refresh rate: %.2f", refresh_rate)
 
 trigger = serial.Serial('COM11', 9600) # lab 11, office 3
 print("Serial port for Arduino opened.")

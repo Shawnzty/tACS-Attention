@@ -15,10 +15,10 @@ screen_height = 1440
 # visual settings
 distance = 480 # distance between screen and participant in unit of mm
 FoV_degree = 60 # field of view in unit of degree
-rf_FoV = 18 # field of sharp view
+rf_FoV = 10 # field of sharp view
 
-alpha = FoV_degree * math.pi / 18
-gamma = rf_FoV * math.pi / 180
+alpha = math.radians(FoV_degree)
+gamma = math.radians(rf_FoV)
 beta = 0.5*alpha -  np.arcsin(((1800-distance)/1800) * math.sin(math.pi - 0.5*alpha))
 phi = 0.5*alpha - gamma - np.arcsin(((1800-distance)/1800) * math.sin(math.pi - 0.5*alpha + gamma))
 
@@ -29,7 +29,7 @@ l2 = beta*1800*mm_pix
 arrow_left = ((0, 15), (-80, 15), (-80, 40), (-140, 0), (-80, -40), (-80, -15), (0, -15))
 arrow_right = ((0, 15), (80, 15), (80, 40), (140, 0), (80, -40), (80, -15), (0, -15))
 
-# trigger
+# trigger_flash
 trigger_sizex = 30
 trigger_sizey = 60
 trigger_ypos = -1*(screen_height/2 - trigger_sizey/2 - 100)
@@ -42,7 +42,6 @@ test_val_ratio = 0.75
 # experiment
 fix_time = 1.5
 val_ratio = 0.8
-dr = (math.sin(math.radians(beta)) / math.sin(math.radians(180-0.5*FoV))) * 1800 
 
 # receptive field
 rf_size = l2 - l1
@@ -51,6 +50,8 @@ rf_pos = 0.5*(l1 + l2)
 # stimulus
 stim_time = 0.05
 stimulus_FoV = 2 # in degree
+psi = 0.5*(alpha - gamma) - np.arcsin((1800-distance)/1800 * math.sin(math.pi - 0.5*(alpha - gamma)))
+dr = (math.sin(psi) / math.sin(math.pi - 0.5*(alpha - gamma))) * 1800
 stimulus_size = math.radians(stimulus_FoV) * dr
 stimulus_pos_a = ((l2 - l1) / 6) + l1
 stimulus_pos_b = ((l2 - l1) / 2) + l1
@@ -63,7 +64,7 @@ ics_slow = 1
 
 endo_trials = 60
 endo_cue_time = 1
-endo_res = 2
+endo_res = 1.5
 
 exo_trials = 60
 exo_cue_flash = 2

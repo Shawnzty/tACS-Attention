@@ -35,12 +35,12 @@ def generate_all_trials(endo_trials, exo_trials, val_ratio):
     stim_y_unit1 = np.concatenate((np.linspace(stimulus_pos_down, stimulus_pos_up, num=round(endo_trials*val_ratio/12)), 
                                    np.linspace(stimulus_pos_down, stimulus_pos_up, num=round(endo_trials*val_ratio/12)),
                                    np.linspace(stimulus_pos_down, stimulus_pos_up, num=round(endo_trials*val_ratio/12))))
-    stim_y_unit2 = np.concatenate((np.linspace(stimulus_pos_down, stimulus_pos_up, num=round(endo_trials*(1-val_ratio)/4))))
+    stim_y_unit2 = np.linspace(stimulus_pos_down, stimulus_pos_up, num=round(endo_trials*(1-val_ratio)/4))
     stim_y_unit = np.concatenate((stim_y_unit1, stim_y_unit1, stim_y_unit2, stim_y_unit2))
     stim_y = np.concatenate((stim_y_unit, stim_y_unit, stim_y_unit, stim_y_unit))
 
     all_trials = np.vstack((cue_type, all_cue, all_valid, all_ics, stim_side, stim_x, stim_y)).T
-    # np.random.shuffle(all_trials)
+    np.random.shuffle(all_trials)
     return all_trials
 
 def make_trial(num1, code1, num2, code2):
@@ -58,13 +58,13 @@ def fix(mywin, fixation, fix_time, left_rf, right_rf, trigger):
 
 
 def endo(mywin, left_rf, right_rf, arrow, stimulus,
-          trigger, cue, stim, ics, stim_x, stim_y):
+          trigger, cue, stim_side, ics, stim_x, stim_y):
     
     if cue == -1:
         arrow.setVertices(arrow_left)
     else:
         arrow.setVertices(arrow_right)
-    stimulus.setPos((stim*stimulus_pos, 0))
+    stimulus.setPos((stim_side*stim_x, stim_y))
 
     # draw cue and flip window
     left_rf.draw()
@@ -105,10 +105,10 @@ def endo(mywin, left_rf, right_rf, arrow, stimulus,
 
 
 def exo(mywin, fixation, left_rf, right_rf, stimulus, 
-        trigger, exo_rect, cue, stim, ics, stim_x, stim_y):
+        trigger, exo_rect, cue, stim_side, ics, stim_x, stim_y):
     
     exo_rect.setPos((cue*rf_pos, 0))
-    stimulus.setPos((stim*stimulus_pos, 0))
+    stimulus.setPos((stim_side*stim_x, stim_y))
 
     # draw cue and flip window
     if cue == 1:

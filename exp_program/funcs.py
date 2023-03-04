@@ -15,23 +15,37 @@ def generate_all_trials(endo_trials, exo_trials, val_ratio):
     valid_unit = make_trial(round(endo_trials*val_ratio/2), 1, round(endo_trials*(1-val_ratio)/2), -1)
     all_valid = np.concatenate((valid_unit, valid_unit, valid_unit, valid_unit))
 
-    all_stim = np.multiply(all_cue, all_valid)
 
-    endo_ics_unit = np.concatenate((np.linspace(endo_ics_min, endo_ics_max, num=round(endo_trials*val_ratio/2)), 
-                                np.linspace(endo_ics_min, endo_ics_max, num=round(endo_trials*(1-val_ratio)/2))))
-    endo_ics = np.concatenate((endo_ics_unit, endo_ics_unit))
-    exo_ics_unit = np.concatenate((np.linspace(exo_ics_min, exo_ics_max, num=round(exo_trials*val_ratio/2)), 
-                                np.linspace(exo_ics_min, exo_ics_max, num=round(exo_trials*(1-val_ratio)/2))))
-    exo_ics = np.concatenate((exo_ics_unit, exo_ics_unit))
-    all_ics = np.concatenate((endo_ics, exo_ics))
+    ics_unit = np.concatenate((make_trial(round((endo_trials*val_ratio)/4), ics_slow, round((endo_trials*val_ratio)/4), ics_fast), 
+                               make_trial(round((endo_trials*(1-val_ratio))/4), ics_slow, round((endo_trials*(1-val_ratio))/4), ics_fast)))
+    all_ics = np.concatenate((ics_unit, ics_unit, ics_unit, ics_unit))
 
-    all_trials = np.vstack((cue_type, all_cue, all_valid, all_stim, all_ics)).T
-    np.random.shuffle(all_trials)
+    stim_side = np.multiply(all_cue, all_valid)
+
+    stim_x_unit1 = np.concatenate((stimulus_pos_a*np.ones(round(endo_trials*val_ratio/12)), 
+                                   stimulus_pos_b*np.ones(round(endo_trials*val_ratio/12)), 
+                                   stimulus_pos_c*np.ones(round(endo_trials*val_ratio/12))))
+    
+    stim_x_unit2 = np.concatenate((stimulus_pos_a*np.ones(round(endo_trials*(1-val_ratio)/12)),
+                                   stimulus_pos_b*np.ones(round(endo_trials*(1-val_ratio)/12)),
+                                   stimulus_pos_b*np.ones(round(endo_trials*(1-val_ratio)/12))))
+    stim_x_unit = np.concatenate((stim_x_unit1, stim_x_unit1, stim_x_unit2, stim_x_unit2))
+    stim_x = np.concatenate((stim_x_unit, stim_x_unit, stim_x_unit, stim_x_unit))
+
+    stim_y_unit1 = np.concatenate((np.linspace(stimulus_pos_down, stimulus_pos_up, num=round(endo_trials*val_ratio/12)), 
+                                   np.linspace(stimulus_pos_down, stimulus_pos_up, num=round(endo_trials*val_ratio/12)),
+                                   np.linspace(stimulus_pos_down, stimulus_pos_up, num=round(endo_trials*val_ratio/12))))
+    stim_y_unit2 = np.concatenate((np.linspace(stimulus_pos_down, stimulus_pos_up, num=round(endo_trials*(1-val_ratio)/4))))
+    stim_y_unit = np.concatenate((stim_y_unit1, stim_y_unit1, stim_y_unit2, stim_y_unit2))
+    stim_y = np.concatenate((stim_y_unit, stim_y_unit, stim_y_unit, stim_y_unit))
+
+    all_trials = np.vstack((cue_type, all_cue, all_valid, all_ics, stim_side, stim_x, stim_y)).T
+    # np.random.shuffle(all_trials)
     return all_trials
 
 def make_trial(num1, code1, num2, code2):
     trial = np.concatenate((code1*np.ones(num1, dtype=int), code2*np.ones(num2, dtype=int)))
-    return trial.tolist()
+    return trial
 
 def fix(mywin, fixation, fix_time, left_rf, right_rf, trigger):
     fixation.draw()
@@ -43,7 +57,8 @@ def fix(mywin, fixation, fix_time, left_rf, right_rf, trigger):
     trigger.write(b'L')
 
 
-def endo(mywin, left_rf, right_rf, arrow, stimulus, trigger, cue, stim, ics):
+def endo(mywin, left_rf, right_rf, arrow, stimulus,
+          trigger, cue, stim, ics, stim_x, stim_y):
     
     if cue == -1:
         arrow.setVertices(arrow_left)
@@ -89,7 +104,8 @@ def endo(mywin, left_rf, right_rf, arrow, stimulus, trigger, cue, stim, ics):
     return response, reaction_time
 
 
-def exo(mywin, fixation, left_rf, right_rf, stimulus, trigger, exo_rect, cue, stim, ics):
+def exo(mywin, fixation, left_rf, right_rf, stimulus, 
+        trigger, exo_rect, cue, stim, ics, stim_x, stim_y):
     
     exo_rect.setPos((cue*rf_pos, 0))
     stimulus.setPos((stim*stimulus_pos, 0))

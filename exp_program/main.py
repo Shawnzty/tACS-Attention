@@ -25,7 +25,7 @@ dataFile = open('data/'+filename+'.csv', 'w')  # a simple text file with 'comma-
     interval between cue and stimulus: in second
     response: 0 = no response, 1 = has response
     reaction time: in second '''
-dataFile.write('type, cue, valid, stimulus, interval between cue and stimulus, response, reaction time\n')
+dataFile.write('type, cue, valid, ICS, stimulus side, stimulus x, stimulus y, response, reaction time\n')
 
 #create a window
 mywin = visual.Window([screen_width, screen_height], 
@@ -53,6 +53,7 @@ if expInfo['Test'] == 0:
 else:
     all_trials = generate_all_trials(test_endo_trials, test_exo_trials, test_val_ratio)
 print("Trials generated.")
+print(all_trials)
 
 refresh_rate = mywin.getActualFrameRate()
 print("Refresh rate: %.2f", refresh_rate)
@@ -68,19 +69,21 @@ for row in all_trials:
 
     if row[0] == 1: # endogenous
         response, reaction_time = endo(mywin, left_rf, right_rf, arrow,
-                                         stimulus, trigger, row[1], row[3], row[4])
+                                         stimulus, trigger, cue = row[1], stim = row[4],
+                                           ics = row[3], stim_x = row[5], stim_y = row[6])
     
         # save data
-        dataFile.write('%i,%i,%i,%i,%i,%i,%.5f\n' %(row[0], row[1], row[2], row[3],
-                                                     row[4], response, reaction_time))
+        dataFile.write('%i,%i,%i,%i,%i,%i,%i,%i,%.5f\n' %(row[0], row[1], row[2], row[3],
+                                                     row[4], row[5], row[6], response, reaction_time))
 
     else: # exogenous
         response, reaction_time = exo(mywin, fixation, left_rf, right_rf, stimulus,
-                                      trigger, exo_rect, row[1], row[3], row[4])
+                                      trigger, exo_rect, cue = row[1], stim = row[4], 
+                                        ics = row[3], stim_x = row[5], stim_y = row[6])
 
         # save data
-        dataFile.write('%i,%i,%i,%i,%i,%i,%.5f\n' %(row[0], row[1], row[2], row[3],
-                                                     row[4], response, reaction_time))
+        dataFile.write('%i,%i,%i,%i,%i,%i,%i,%i,%.5f\n' %(row[0], row[1], row[2], row[3],
+                                                     row[4], row[5], row[6], response, reaction_time))
 
 
 finish(mywin, expInfo)

@@ -9,11 +9,21 @@ import numpy as np
 # 5129 1440 for Philips
 screen_width = 5120
 screen_width_mm = 1193.5
+mm_pix = screen_width / screen_width_mm
 screen_height = 1440
+
+# visual settings
 distance = 480 # distance between screen and participant in unit of mm
-FoV = 60 # field of view in unit of degree
-beta = 0.5*FoV -  (180/math.pi) * np.arcsin(((1800-distance)/1800) * math.sin(math.radians(180-0.5*FoV))) # beta is the angle between the center of the screen and the center of the RF
-l = 10 * math.pi * beta
+FoV_degree = 60 # field of view in unit of degree
+rf_FoV = 18 # field of sharp view
+
+alpha = FoV_degree * math.pi / 18
+gamma = rf_FoV * math.pi / 180
+beta = 0.5*alpha -  np.arcsin(((1800-distance)/1800) * math.sin(math.pi - 0.5*alpha))
+phi = 0.5*alpha - gamma - np.arcsin(((1800-distance)/1800) * math.sin(math.pi - 0.5*alpha + gamma))
+
+l1 = phi*1800*mm_pix
+l2 = beta*1800*mm_pix
 
 # arrow
 arrow_left = ((0, 15), (-80, 15), (-80, 40), (-140, 0), (-80, -40), (-80, -15), (0, -15))
@@ -30,35 +40,36 @@ test_exo_trials = 4
 test_val_ratio = 0.75
 
 # experiment
-fix_time = 2
+fix_time = 1.5
 val_ratio = 0.8
 dr = (math.sin(math.radians(beta)) / math.sin(math.radians(180-0.5*FoV))) * 1800 
 
 # receptive field
-rf_FoV = 20 # in degree
-rf_size = math.radians(rf_FoV) * dr
-rf_pos = l*screen_width/screen_width_mm
+rf_size = l2 - l1
+rf_pos = 0.5*(l1 + l2)
 
 # stimulus
 stim_time = 0.05
 stimulus_FoV = 2 # in degree
 stimulus_size = math.radians(stimulus_FoV) * dr
-stimulus_pos = rf_pos
+stimulus_pos_a = ((l2 - l1) / 6) + l1
+stimulus_pos_b = ((l2 - l1) / 2) + l1
+stimulus_pos_c = ((l2 - l1) * 5 / 6) + l1
+stimulus_pos_up = ((l2 - l1) / 2) - stimulus_size
+stimulus_pos_down = -1 * stimulus_pos_up
 
+ics_fast = 0.5
+ics_slow = 1
 
-endo_trials = 50
+endo_trials = 60
 endo_cue_time = 1
-endo_ics_min = 0.5
-endo_ics_max = 1.5
 endo_res = 2
 
-exo_trials = 50
+exo_trials = 60
 exo_cue_flash = 2
 exo_cue_flash_ontime = 0.033
 exo_cue_flash_offtime = 0.033
-exo_ics_min = 0.5
-exo_ics_max = 1
-exo_res = 2
+exo_res = 1.5
 
 # text
 text_size = 35

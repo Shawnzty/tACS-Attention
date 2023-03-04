@@ -43,7 +43,7 @@ arrow = visual.ShapeStim(mywin, vertices=((0, 15), (-80, 15), (-80, 40), (-140, 
                          fillColor='white', lineColor=None)
 arrow.setVertices(arrow_right)
 exo_rect = visual.Rect(mywin, pos=(rf_pos, 0), size=rf_size, lineColor='white', fillColor=None, lineWidth=50)
-trigger = visual.Rect(mywin, pos=((screen_width-trigger_sizex)/2, trigger_ypos),
+trigger_flash = visual.Rect(mywin, pos=((screen_width-trigger_sizex)/2, trigger_ypos),
                        size=(trigger_sizex,trigger_sizey), lineColor=None, fillColor='white')
 print("Objects created.")
 

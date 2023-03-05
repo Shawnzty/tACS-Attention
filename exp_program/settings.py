@@ -13,7 +13,7 @@ mm_pix = screen_width / screen_width_mm
 screen_height = 1440
 
 # visual settings
-distance = 480 # distance between screen and participant in unit of mm
+distance = 580 # distance between screen and participant in unit of mm
 FoV_degree = 60 # field of view in unit of degree
 rf_FoV = 10 # field of sharp view
 

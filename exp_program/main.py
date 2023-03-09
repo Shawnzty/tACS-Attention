@@ -65,12 +65,12 @@ print("Serial port for Arduino opened.")
 start(mywin, expInfo)
 
 for row in all_trials:
-    fix(mywin, fixation, fix_time, left_rf, right_rf, trigger)
+    fix(mywin, fixation, fix_time, left_rf, right_rf, trigger, trigger_flash)
 
     if row[0] == 1: # endogenous
         response, reaction_time = endo(mywin, left_rf, right_rf, arrow,
                                          stimulus, trigger, cue = row[1], stim_side = row[4],
-                                           ics = row[3], stim_x = row[5], stim_y = row[6])
+                                           ics = row[3], stim_x = row[5], stim_y = row[6], trigger_flash = trigger_flash)
     
         # save data
         dataFile.write('%i,%i,%i,%.2f,%i,%i,%i,%i,%.5f\n' %(row[0], row[1], row[2], row[3],

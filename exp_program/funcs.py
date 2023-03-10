@@ -47,19 +47,19 @@ def make_trial(num1, code1, num2, code2):
     trial = np.concatenate((code1*np.ones(num1, dtype=int), code2*np.ones(num2, dtype=int)))
     return trial
 
-def fix(mywin, fixation, fix_time, left_rf, right_rf, trigger):
+def fix(mywin, fixation, fix_time, left_rf, right_rf, trigger, trigger_flash):
     fixation.draw()
     left_rf.draw()
     right_rf.draw()
     trigger.write(b'H')
-    # trigger_flash.draw()
+    trigger_flash.draw()
     mywin.flip()
     core.wait(fix_time)
     trigger.write(b'L')
 
 
 def endo(mywin, left_rf, right_rf, arrow, stimulus,
-          trigger, cue, stim_side, ics, stim_x, stim_y):
+          trigger, cue, stim_side, ics, stim_x, stim_y, trigger_flash):
     
     if cue == -1:
         arrow.setVertices(arrow_left)
@@ -85,7 +85,7 @@ def endo(mywin, left_rf, right_rf, arrow, stimulus,
     right_rf.draw()
     stimulus.draw()
     trigger.write(b'H')
-    # trigger_flash.draw()
+    trigger_flash.draw()
     mywin.flip()
     core.wait(stim_time)
     trigger.write(b'L')
@@ -107,7 +107,7 @@ def endo(mywin, left_rf, right_rf, arrow, stimulus,
 
 
 def exo(mywin, fixation, left_rf, right_rf, stimulus, 
-        trigger, exo_rect, cue, stim_side, ics, stim_x, stim_y):
+        trigger, exo_rect, cue, stim_side, ics, stim_x, stim_y, trigger_flash):
     
     exo_rect.setPos((cue*rf_pos, 0))
     stimulus.setPos((stim_side*stim_x, stim_y))
@@ -131,7 +131,7 @@ def exo(mywin, fixation, left_rf, right_rf, stimulus,
     fixation.draw()
     stimulus.draw()
     trigger.write(b'H')
-    # trigger_flash.draw()
+    trigger_flash.draw()
     mywin.flip()
     core.wait(stim_time)
     trigger.write(b'L')

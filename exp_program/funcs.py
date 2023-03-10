@@ -51,15 +51,15 @@ def fix(mywin, fixation, fix_time, left_rf, right_rf, trigger, trigger_flash):
     fixation.draw()
     left_rf.draw()
     right_rf.draw()
+    # trigger_flash.draw()
     trigger.write(b'H')
-    trigger_flash.draw()
     mywin.flip()
     core.wait(fix_time)
     trigger.write(b'L')
 
 
 def endo(mywin, left_rf, right_rf, arrow, stimulus,
-          trigger, cue, stim_side, ics, stim_x, stim_y, trigger_flash):
+          trigger, cue, stim_side, ics, stim_x, stim_y):
     
     if cue == -1:
         arrow.setVertices(arrow_left)
@@ -84,8 +84,8 @@ def endo(mywin, left_rf, right_rf, arrow, stimulus,
     left_rf.draw()
     right_rf.draw()
     stimulus.draw()
+    # trigger_flash.draw()
     trigger.write(b'H')
-    trigger_flash.draw()
     mywin.flip()
     core.wait(stim_time)
     trigger.write(b'L')
@@ -107,7 +107,7 @@ def endo(mywin, left_rf, right_rf, arrow, stimulus,
 
 
 def exo(mywin, fixation, left_rf, right_rf, stimulus, 
-        trigger, exo_rect, cue, stim_side, ics, stim_x, stim_y, trigger_flash):
+        trigger, exo_rect, cue, stim_side, ics, stim_x, stim_y):
     
     exo_rect.setPos((cue*rf_pos, 0))
     stimulus.setPos((stim_side*stim_x, stim_y))
@@ -130,8 +130,8 @@ def exo(mywin, fixation, left_rf, right_rf, stimulus,
     right_rf.draw()
     fixation.draw()
     stimulus.draw()
+    # trigger_flash.draw()
     trigger.write(b'H')
-    trigger_flash.draw()
     mywin.flip()
     core.wait(stim_time)
     trigger.write(b'L')

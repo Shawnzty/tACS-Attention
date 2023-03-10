@@ -65,7 +65,7 @@ print("Serial port for Arduino opened.")
 start(mywin, expInfo)
 
 for row in all_trials:
-    fix(mywin, fixation, fix_time, left_rf, right_rf, trigger, trigger_flash)
+    fix(mywin, fixation, fix_time, left_rf, right_rf, trigger)
 
     if row[0] == 1: # endogenous
         response, reaction_time = endo(mywin, left_rf, right_rf, arrow,

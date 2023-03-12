@@ -47,7 +47,7 @@ def make_trial(num1, code1, num2, code2):
     trial = np.concatenate((code1*np.ones(num1, dtype=int), code2*np.ones(num2, dtype=int)))
     return trial
 
-def fix(mywin, fixation, fix_time, left_rf, right_rf, trigger, trigger_flash):
+def fix(mywin, fixation, fix_time, left_rf, right_rf, trigger):
     fixation.draw()
     left_rf.draw()
     right_rf.draw()

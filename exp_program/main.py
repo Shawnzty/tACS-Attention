@@ -84,6 +84,7 @@ for row in all_trials:
         # save data
         dataFile.write('%i,%i,%i,%.2f,%i,%i,%i,%i,%.5f\n' %(row[0], row[1], row[2], row[3],
                                                      row[4], row[5], row[6], response, reaction_time))
+    print(dataFile)
 
 
 finish(mywin, expInfo)

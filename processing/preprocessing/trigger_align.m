@@ -13,7 +13,7 @@ advance_step = round(advance*sampling_freq/1000);
 
 filenames = ["eeg_before", "eeg_after"];
 for i = 1:subject_num
-    folder = "../../data/" + num2str(i) + "/";
+    folder = "../../../data/" + num2str(i) + "/";
     for j = 1:2
         eeg = load(folder+filenames(j)).y;
         trigger = eeg(end,:);

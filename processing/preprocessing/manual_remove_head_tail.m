@@ -4,7 +4,7 @@ fix_most = 1900;
 stim_least = 60;
 stim_most = 90;
 
-eeg = load("../../data/6/eeg_after").eeg;
+eeg = load("../../../data/6/eeg_after").eeg;
 trig = eeg(end,:);
 
 for head=110000:length(trig)
@@ -31,11 +31,11 @@ end
 head = head - 1200;
 tail = tail + 3600;
 eeg = eeg(:,head:tail);
-save("../../data/6/eeg_after", "eeg");
+save("../../../data/6/eeg_after", "eeg");
 figure();
 plot(eeg(end,:));
 
-eeg = load("../../data/7/eeg_after").eeg;
+eeg = load("../../../data/7/eeg_after").eeg;
 trig = eeg(end,:);
 for head=270000:length(trig)
     if trig(head) == 8 && trig(head + fix_least) == 8 ...
@@ -61,6 +61,6 @@ end
 head = head - 1200;
 tail = tail + 3600;
 eeg = eeg(:,head:tail);
-save("../../data/7/eeg_after", "eeg");
+save("../../../data/7/eeg_after", "eeg");
 figure();
 plot(eeg(end,:));

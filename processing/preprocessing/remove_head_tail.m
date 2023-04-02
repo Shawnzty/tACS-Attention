@@ -33,7 +33,7 @@ stim_most = 90;
 
 filenames = ["eeg_before", "eeg_after"];
 for i = 1:subject_num
-    folder = "../../data/" + num2str(i) + "/";
+    folder = "../../../data/" + num2str(i) + "/";
     for j = 1:2
         disp(folder+filenames(j));
         eeg = load(folder+filenames(j)).eeg;
@@ -66,6 +66,6 @@ for i = 1:subject_num
         tail = tail + 3600;
         eeg = eeg(:,head:tail);
 
-        % save(folder+filenames(j), "eeg");
+        save(folder+filenames(j), "eeg");
     end
 end

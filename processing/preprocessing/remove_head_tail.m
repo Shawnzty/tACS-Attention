@@ -1,4 +1,4 @@
-% eeg = load("../../data/4/eeg_after").eeg;
+% eeg = load("../../../data/4/eeg_after").eeg;
 % trig = eeg(end,:);
 
 subject_num = 8;

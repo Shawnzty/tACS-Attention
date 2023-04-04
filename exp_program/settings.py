@@ -59,6 +59,7 @@ stimulus_pos_c = ((l2 - l1) * 5 / 6) + l1
 stimulus_pos_up = ((l2 - l1) / 2) - stimulus_size
 stimulus_pos_down = -1 * stimulus_pos_up
 
+# ics: interval between cue and stimulus
 ics_fast = 0.5
 ics_slow = 1
 

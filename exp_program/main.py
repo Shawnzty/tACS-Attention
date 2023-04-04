@@ -25,7 +25,7 @@ dataFile = open('data/'+filename+'.csv', 'w')  # a simple text file with 'comma-
     interval between cue and stimulus: in second
     response: 0 = no response, 1 = has response
     reaction time: in second '''
-dataFile.write('type, cue, valid, ICS, stimulus side, stimulus x, stimulus y, response, reaction time\n')
+dataFile.write('type,cue,valid,ICS,stimulus side,stimulus x,stimulus y,response,reaction time\n')
 
 #create a window
 mywin = visual.Window([screen_width, screen_height], 

@@ -1,14 +1,18 @@
 import numpy as np
 import mne
 import matplotlib.pyplot as plt
+import os
 
-sample_data_folder = mne.datasets.sample.data_path()
-sample_data_raw_file = (sample_data_folder / 'MEG' / 'sample' /
-                        'sample_audvis_filt-0-40_raw.fif')
-raw = mne.io.read_raw_fif(sample_data_raw_file)
+subject_id = 4
+
+current_script_folder = os.path.dirname(os.path.abspath(__file__))
+data_folder = os.path.join(current_script_folder, '..', '..', 'data')
+subject_folder = os.path.join(data_folder, str(subject_id))
+raw_load_path = os.path.join(subject_folder, 'raw.fif')
+raw = mne.io.read_raw_fif(raw_load_path, preload=True)
 
 # Select a single channel
-channel_name = 'STI 014'  # Replace with the desired channel name
+channel_name = 'fixation'  # Replace with the desired channel name
 channel_idx = raw.ch_names.index(channel_name)
 
 # Extract the channel data and the times

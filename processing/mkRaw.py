@@ -90,7 +90,8 @@ def mkraw(subject_id, before_or_after):
     raw.save(raw_save_path, overwrite=True)
 
 # main
-
+script_dir = os.path.dirname(os.path.realpath(__file__))
+os.chdir(script_dir)
 for subject_id in range (1,9):
     for before_or_after in ['before', 'after']:
         mkraw(subject_id, before_or_after)

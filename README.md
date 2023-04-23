@@ -11,3 +11,5 @@ behavior is the program to analyze and plot the behavior data.
 ## Analysis of EEG data
 eeg_overview is the program to plot the overview of the EEG data. (not used any more)
 1. mkRaw_ica: make raw data and apply ICA
+2. manual_pick_ica and ic_to_remove: are used for manual picking of ICA components
+3. icaRepair: repair the ICA components based on ic_to_remove

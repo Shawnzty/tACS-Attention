@@ -1,0 +1,17 @@
+subject_id,before_or_after,n_components,remove_ic
+1,before,32,"0,1,27"
+1,after,32,0
+2,before,32,0
+2,after,32,0
+3,before,32,0
+3,after,32,0
+4,before,32,
+4,after,32,
+5,before,32,
+5,after,32,
+6,before,32,
+6,after,32,
+7,before,32,
+7,after,32,
+8,before,32,
+8,after,32,

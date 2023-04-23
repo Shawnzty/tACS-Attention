@@ -84,6 +84,7 @@ def mkraw(subject_id, before_or_after):
     # add info and montage to raw object
     raw.set_montage(montage)
     raw.info['subject_info'] = {'id': subject_id}
+    raw.info['experimenter'] = before_or_after
     raw.filter(l_freq=0.1, h_freq=100)
     # print(raw.info['subject_info'])
     raw_save_path = os.path.join('..', '..', 'data', str(subject_id), 'raw_' + before_or_after + '.fif')

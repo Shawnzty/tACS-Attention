@@ -9,15 +9,10 @@ import pandas as pd
 from mpl_toolkits.mplot3d import Axes3D  # noqa
 import mne
 
-def load_eeg_data(subject_id):
-    raw_path_before = os.path.join('../../data', str(subject_id), 'repaired_before.fif')
-    raw_before = mne.io.read_raw_fif(raw_path_before, preload=True)
-    raw_path_after = os.path.join('../../data', str(subject_id), 'repaired_after.fif')
-    raw_after = mne.io.read_raw_fif(raw_path_after, preload=True)
-    return raw_before, raw_after
 
-def epoching_data(raw, merge_events, intersect_events, center_event, minus_t, to_t):): 
-    # merge_events = [2, 3], intersect_events = [10, 21]
+def load_and_epoching(subject_id, before_or_after, minus_t, to_t):
+    raw_path = os.path.join('../../data', str(subject_id), 'repaired_'+before_or_after+'.fif')
+    raw = mne.io.read_raw_fif(raw_path, preload=True)
 
     # detect events
     ch_names = raw.info['ch_names']
@@ -35,26 +30,15 @@ def epoching_data(raw, merge_events, intersect_events, center_event, minus_t, to
     event_dict = {stim_channel_name: idx + 1 for idx, stim_channel_name in enumerate(stim_channel_names)}
 
     # epoching
-    # Create separate events arrays for events to merge (2 and 3) and the event to intersect with (6)
-    events_to_merge = events[np.isin(events[:, 2], merge_events)]
-    event_to_intersect = events[events[:, 2] == 6]
-
-    # Merge events 2 and 3 by changing their event ids to a new id (e.g., 8)
-    merged_events = events_to_merge.copy()
-    merged_events[:, 2] = 1
-
-    # Find the intersection between the merged events and event 6
-    intersection_samples = np.intersect1d(merged_events[:, 0], event_to_intersect[:, 0])
-
-    # Create a new events array with the intersected events
-    intersected_events = merged_events[np.isin(merged_events[:, 0], intersection_samples)]
-
-    # Create epochs with the intersected events
-    epochs = mne.Epochs(raw, intersected_events, event_id={'picked_events': 1}, tmin=minus_t, tmax=to_t, preload=True)
-
+    epochs = mne.Epochs(raw, events, event_id=10, tmin=minus_t, tmax=to_t, preload=True)
     return epochs
 
-def analyze_eeg_data(preprocessed_data):
-    # Perform time-frequency analysis and evoked response estimation
-    # ...
-    return analysis_results
+
+# Function to calculate the PSD for each subject
+def calculate_subject_psd(subject_ids, before_or_after, fmin, fmax):
+    psds = []
+    for subject_id in subject_ids:
+        epochs = load_and_epoching(subject_id, before_or_after, 0, 1)
+        psd, freqs = mne.time_frequency.psd_multitaper(epochs, fmin=fmin, fmax=fmax, n_jobs=1)
+        psds.append(psd)
+    return psds

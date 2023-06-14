@@ -58,7 +58,7 @@ print(all_trials)
 refresh_rate = mywin.getActualFrameRate()
 print("Refresh rate: %.2f", refresh_rate)
 
-trigger = serial.Serial('COM11', 9600) # lab 11, office 3
+trigger = serial.Serial('COM3', 9600) # lab 11, office 3
 print("Serial port for Arduino opened.")
 
 

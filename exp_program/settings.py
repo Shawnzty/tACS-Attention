@@ -6,7 +6,7 @@ import numpy as np
 # display settings
 # 1512 982 for mbp14
 # 3840 2160 for dell
-# 5129 1440 for Philips
+# 5120 1440 for Philips
 screen_width = 5120
 screen_width_mm = 1193.5
 mm_pix = screen_width / screen_width_mm

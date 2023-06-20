@@ -29,7 +29,7 @@ dataFile.write('type,cue,valid,ICS,stimulus side,stimulus x,stimulus y,response,
 
 #create a window
 mywin = visual.Window([screen_width, screen_height], 
-                      fullscr=True, screen=1, monitor="testMonitor", 
+                      fullscr=True, screen=2, monitor="testMonitor", 
                       color=[-1,-1,-1], units="pix")
 print("Window created.")
 

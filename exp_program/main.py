@@ -89,4 +89,4 @@ for row in all_trials:
 
 finish(mywin, expInfo)
 dataFile.close()
-           
+ 

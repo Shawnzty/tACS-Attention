@@ -17,7 +17,7 @@ if dlg.OK:
     filename = expInfo['Name'] + "_test_" + expInfo['dateStr'] if expInfo['Test']==1 else expInfo['Name'] + "_" + expInfo['Session'] + "_" + expInfo['dateStr']
 else:
     core.quit()  # the user hit cancel so exit
-dataFile = open('data/'+filename+'.csv', 'w')  # a simple text file with 'comma-separated-values'
+dataFile = open('../data/'+filename+'.csv', 'w')  # a simple text file with 'comma-separated-values'
 ''' type: 1 = endogenous, 2 = exogenous
     cue: -1 = left, 1 = right
     valid: -1 = invalid, 1 = valid
@@ -89,4 +89,3 @@ for row in all_trials:
 
 finish(mywin, expInfo)
 dataFile.close()
- 

@@ -6,7 +6,8 @@ processing is the program to process the data.
 prepare_data is the MATLAB program to prepare the data for MNE-Pyhton.
 
 ## Analysis of behavior data
-behavior is the program to analyze and plot the behavior data.
+- behavior is the program to analyze and plot the behavior data.
+- Behavior data has been removed from repository.
 
 ## Analysis of EEG data
 eeg_overview is the program to plot the overview of the EEG data. (not used any more)

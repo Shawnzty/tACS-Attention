@@ -1,38 +1,16 @@
-% eeg = load("../../../data/4/eeg_after").eeg;
-% trig = eeg(end,:);
+clear;
+clc;
 
-subject_num = 8;
+% i = 18; j = 2;
 % least and most steps
-fix_least = 1700;
-fix_most = 1900;
-stim_least = 60;
-stim_most = 90;
+fix_least = 1400;
+fix_most = 1800;
+stim_least = 50;
+stim_most = 80;
 
-% for i=1:length(trig)
-%     if trig(i) == 8 && trig(i + fix_least) == 8
-%         disp(i)
-%         break
-%     else
-%         continue
-%     end
-% end
-% 
-% 
-% for j=length(trig):-1:1
-%     if trig(j) == 8 && trig(j-stim_least) == 8
-%         disp(j)
-%         break
-%     else
-%         continue
-%     end
-% end
-% 
-% head = i - 1200;
-% tail = j + 3600;
-% trig = trig(head:tail);
 
 filenames = ["eeg_before", "eeg_after"];
-for i = 1:subject_num
+for i = 9:18
     folder = "../../../data/" + num2str(i) + "/";
     for j = 1:2
         disp(folder+filenames(j));
@@ -60,12 +38,12 @@ for i = 1:subject_num
                 continue
             end
         end
-        
         % add some buffer
         head = head - 1200;
         tail = tail + 3600;
+        disp(tail-head);
         eeg = eeg(:,head:tail);
 
-        save(folder+filenames(j), "eeg");
-    end
+       save(folder+filenames(j), "eeg");
+   end
 end

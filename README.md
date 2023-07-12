@@ -16,6 +16,7 @@ eeg_overview is the program to plot the overview of the EEG data. (not used any 
 3. icaRepair: repair the ICA components based on ic_to_remove
 
 ## Preprocessing of eeg data
-1. 'rename_eeg': change the name of the variable from y to eeg.
-2. 'check_data': check the data of raw eeg.
-3.  
+1. `rename_eeg`: change the name of the variable from y to eeg.
+2. `trigger_align`: align the trigger to eeg to remove delay.
+3. `remove_head_tail`: remove the head and tail of raw eeg.`
+4. `check_data`: check the data of eeg.

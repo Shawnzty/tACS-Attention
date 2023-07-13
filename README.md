@@ -19,4 +19,5 @@ eeg_overview is the program to plot the overview of the EEG data. (not used any 
 1. `rename_eeg`: change the name of the variable from y to eeg.
 2. `trigger_align`: align the trigger to eeg to remove delay.
 3. `remove_head_tail`: remove the head and tail of raw eeg.`
-4. `check_data`: check the data of eeg.
+4. `stim_channels`: add stim channels to raw eeg.
+5. `check_data`: check the data of eeg.

@@ -1,13 +1,19 @@
-subject_num = 8;
+clear;
+clc;
 
-advance = 58.56; % ms
-sampling_freq = 1200; % Hz
-advance_step = round(advance*sampling_freq/1000);
+eeg_filenames = ["eeg_before", "eeg_after"];
+behavior_filenames = ["behavior_before", "behavior_after"];
+save_filenames = ["eeg_before_addstim", "eeg_after_addstim"];
 
-file = "../../data/7/eeg_after";
-eeg = load(file).y;
-trigger = eeg(end,:);
-trigger = trigger(1:end-advance_step);
-trigger = [zeros(1,advance_step), trigger];
-eeg(end,:) = trigger;
-save(file, "eeg");
+for subject = 1:8
+    folder = "../../../data/" + num2str(subject) + "/"
+    for trial = 1:2
+        eeg_1 = load(folder+eeg_filenames(trial)).eeg;
+        eeg_2 = load(folder+save_filenames(trial)).eeg;
+        
+        eeg_1 = eeg_1(35:55,:);
+        eeg_2 = [eeg_2(35,:); eeg_2(37:56,:)];
+        diff = eeg_1 - eeg_2;
+        disp(sum(sum(eeg_1-eeg_2)));
+    end
+end

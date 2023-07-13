@@ -1,8 +1,9 @@
-subject_num = 8;
+% subject_num = 8;
 eeg_filenames = ["eeg_before", "eeg_after"];
 behavior_filenames = ["behavior_before", "behavior_after"];
+% save_filenames = ["eeg_before_addstim", "eeg_after_addstim"];
 
-for subject = 1:subject_num
+for subject = 1:8
     folder = "../../../data/" + num2str(subject) + "/";
     for trial = 1:2
         disp(folder+eeg_filenames(trial));
@@ -11,12 +12,12 @@ for subject = 1:subject_num
         behavior = readmatrix(folder+behavior_filenames(trial));
 
 
-trigger = eeg_origin(end,:);
+trigger = eeg_origin(34,:);
 sampling_freq = 1200;
-fix_least = 1800;
-fix_most = 1900;
-stim_least = 65;
-stim_most = 85;
+fix_least = 1500;
+fix_most = 1800;
+stim_least = 50;
+stim_most = 80;
 
 % unit in steps
 fix = 1.5 * sampling_freq;
@@ -30,6 +31,7 @@ stim_t = round(0.05 * sampling_freq);
 % create containers
 fixation = zeros(1,length(trigger));
 
+cue = zeros(1,length(trigger));
 endo_left = zeros(1,length(trigger));
 endo_right = zeros(1,length(trigger));
 exo_left = zeros(1,length(trigger));
@@ -83,6 +85,7 @@ while j <= length(trigger)
         % disp(k);
         % GOTO cue
         j = j+fix;
+        cue(j) = 1;
         % mark cue
         if event(1) == 1
             % endo
@@ -172,32 +175,33 @@ eeg(1:34,:) = eeg_origin(1:34,:);
 
 eeg(35,:) = fixation;
 
-eeg(36,:) = endo_left;
-eeg(37,:) = endo_right;
-eeg(38,:) = exo_left;
-eeg(39,:) = exo_right;
+eeg(36,:) = cue;
+eeg(37,:) = endo_left;
+eeg(38,:) = endo_right;
+eeg(39,:) = exo_left;
+eeg(40,:) = exo_right;
 
-eeg(40,:) = valid;
-eeg(41,:) = invalid;
+eeg(41,:) = valid;
+eeg(42,:) = invalid;
 
-eeg(42,:) = ics_fast;
-eeg(43,:) = ics_slow;
+eeg(43,:) = ics_fast;
+eeg(44,:) = ics_slow;
 
-eeg(44,:) = stim;
-eeg(45,:) = stim_left;
-eeg(46,:) = stim_right;
+eeg(45,:) = stim;
+eeg(46,:) = stim_left;
+eeg(47,:) = stim_right;
 
-eeg(47,:) = stim_close;
-eeg(48,:) = stim_xmiddle;
-eeg(49,:) = stim_far;
+eeg(48,:) = stim_close;
+eeg(49,:) = stim_xmiddle;
+eeg(50,:) = stim_far;
 
-eeg(50,:) = stim_highest;
-eeg(51,:) = stim_higher;
-eeg(52,:) = stim_ymiddle;
-eeg(53,:) = stim_lower;
-eeg(54,:) = stim_lowest;
+eeg(51,:) = stim_highest;
+eeg(52,:) = stim_higher;
+eeg(53,:) = stim_ymiddle;
+eeg(54,:) = stim_lower;
+eeg(55,:) = stim_lowest;
 
-eeg(55,:) = response;
+eeg(56,:) = response;
 
 % save eeg data
 save(folder+eeg_filenames(trial), "eeg");

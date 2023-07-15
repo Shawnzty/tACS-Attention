@@ -11,13 +11,25 @@ taskbar_shift = [60 50];
 
 Fs = 1200; % Sample rate
 
-% Design a Notch filter
-notch_freq = 100;
-wo = notch_freq/(Fs/2); % Notch frequency (e.g., 60Hz)
-bw = wo/35; % Bandwidth
-[b,a] = iirnotch(wo,bw);
+% Design a Notch filter: quality factor
+F1 = 50;
+q1 = 20;
+bw1 = 2; %F1/q1; % Bandwidth
+[b1,a1] = iirnotch(F1/(Fs/2),bw1/(Fs/2));
 
-for sub_id = 18
+% Design a Notch filter: quality factor = 10
+F2 = 100;
+q2 = 20;
+bw2 = 4; % F2/q2; % a bandwidth factor of 5Hz
+[b2,a2] = iirnotch(F2/(Fs/2),bw2/(Fs/2));
+
+% Design a Notch filter: quality factor = 10
+F3 = 150;
+q3 = 6;
+bw3 = 3; % F3/q3; % a bandwidth factor of 5Hz
+[b3,a3] = iirnotch(F3/(Fs/2),bw3/(Fs/2));
+
+for sub_id = 12
 for session = 1:2
 filename = append("../../../data/",num2str(sub_id),"/eeg_",session_name(session));
 eeg = load(filename).eeg;
@@ -35,8 +47,9 @@ for channel = 2:33
     data = eeg(channel,:);
     data_filter = lowpass(data,100,Fs);
 
-    data_filter = filtfilt(b,a,data_filter); % Apply Notch filter
-    % data_smooth = smoothdata(data_notch);
+    data_filter = filtfilt(b1,a1,data_filter); % Apply Notch filter
+    data_filter = filtfilt(b2,a2,data_filter);
+    data_filter = filtfilt(b3,a3,data_filter);
 
     f = figure('Position', [(mod(channel-2,8)*fig_width)+left_offset (floor((channel-2)/8)*fig_height)+monitor_shift(session) fig_width fig_height]); % calculate the position based on the figure index
 
@@ -59,7 +72,7 @@ for channel = 2:33
     title("Periodogram Using FFT")
     xlabel("Frequency (Hz)")
     ylabel("Power/Frequency (dB/Hz)")
-    xlim([0 150]);
+    xlim([0 200]);
     ylim([-50 50]);
     
 end

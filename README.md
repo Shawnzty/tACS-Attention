@@ -15,9 +15,15 @@ eeg_overview is the program to plot the overview of the EEG data. (not used any 
 2. manual_pick_ica and ic_to_remove: are used for manual picking of ICA components
 3. icaRepair: repair the ICA components based on ic_to_remove
 
-## Preprocessing of eeg data
+## `Preprocessing` of eeg data
 1. `rename_eeg`: change the name of the variable from y to eeg.
 2. `trigger_align`: align the trigger to eeg to remove delay.
 3. `remove_head_tail`: remove the head and tail of raw eeg.`
 4. `stim_channels`: add stim channels to raw eeg.
 5. `check_filter`: check the data and see which filter is good.
+- `check_one_chan`: check the data of one channel.
+
+## `eeg_analysis` of eeg data
+1. `mkRaw`: make raw data as MNE format.
+- `eeg_overview`: show the overview of eeg data
+

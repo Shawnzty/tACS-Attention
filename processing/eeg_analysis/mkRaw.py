@@ -3,6 +3,8 @@ from scipy.io import loadmat
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg') # use a non-interactive backend such as Agg (for PNGs), PDF, SVG or PS.
 import numpy as np
 import pandas as pd
 # the following import is required for matplotlib < 3.2:
@@ -11,7 +13,7 @@ import mne
 
 def mkraw(subject_id, before_or_after):
     # read the EEG data
-    eeg_path = os.path.join('..', '..', 'data', str(subject_id), 'eeg_' + before_or_after + '.mat')
+    eeg_path = os.path.join('..', '..', '..', 'data', str(subject_id), 'eeg_' + before_or_after + '.mat')
     eeg_data = loadmat(eeg_path)['eeg']
     eeg_data[1:33] *= 1e-6 # convert to microvolts
 
@@ -29,13 +31,13 @@ def mkraw(subject_id, before_or_after):
                         'CP5', 'CP1', 'CP2', 'CP6',
                         'P7', 'P5', 'P3', 'Pz', 'P4', 'P6', 'P8',
                         'PO3', 'PO4',
-                        'O1', 'Oz', 'O2'] + ['Trigger'] + ['fixation',
+                        'O1', 'Oz', 'O2'] + ['Trigger'] + ['fixation', 'cue',
                             'endo left', 'endo right', 'exo left', 'exo right',
                             'valid', 'invalid', 'ics fast', 'ics slow',
                             'stim', 'stim_left', 'stim_right', 'stim_close','stim_xmiddle','stim_far',
                             'stim_highest', 'stim_higher', 'stim_ymiddle', 'stim_lower', 'stim_lowest',
                             'response']
-    ch_types = ['misc'] + ['eeg'] * 32 + ['misc'] + ['stim'] * 21
+    ch_types = ['misc'] + ['eeg'] * 32 + ['misc'] + ['stim'] * 22
 
     # Create the info object
     info = mne.create_info(ch_names, sfreq=1200, ch_types=ch_types)
@@ -86,13 +88,20 @@ def mkraw(subject_id, before_or_after):
     raw.info['subject_info'] = {'id': subject_id}
     raw.info['experimenter'] = before_or_after
     raw.filter(l_freq=0.1, h_freq=100)
+    # notch filter q=50, notch_widths = freq/q
+    raw.notch_filter(50, notch_widths=1)
+    raw.notch_filter(100, notch_widths=2)
     # print(raw.info['subject_info'])
-    raw_save_path = os.path.join('..', '..', 'data', str(subject_id), 'raw_' + before_or_after + '.fif')
+    raw_save_path = os.path.join('..', '..', '..', 'data', str(subject_id), 'raw_' + before_or_after + '.fif')
     raw.save(raw_save_path, overwrite=True)
+
+    fig = mne.viz.plot_raw_psd(raw, fmax=150, spatial_colors=True)
+    plot_save_path = os.path.join('..', '..', '..', 'data', 'psd', str(subject_id) + '_' + before_or_after + '.png')
+    fig.savefig(plot_save_path)
 
 # main
 script_dir = os.path.dirname(os.path.realpath(__file__))
 os.chdir(script_dir)
-for subject_id in range (1,9):
+for subject_id in range (1,19):
     for before_or_after in ['before', 'after']:
         mkraw(subject_id, before_or_after)

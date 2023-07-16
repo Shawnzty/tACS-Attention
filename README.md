@@ -25,5 +25,10 @@ eeg_overview is the program to plot the overview of the EEG data. (not used any 
 
 ## `eeg_analysis` of eeg data
 1. `mkRaw`: make raw data as MNE format.
+2. `icaRepair`: repair the ICA components based on ic_to_remove
+3. 
+
 - `eeg_overview`: show the overview of eeg data
+- `manual_pick_ica`: manually pick ICAs to remove or keep, and save in ic_to_remove.csv
+
 

@@ -34,8 +34,8 @@ def mkraw(subject_id, before_or_after):
                         'O1', 'Oz', 'O2'] + ['Trigger'] + ['fixation', 'cue',
                             'endo left', 'endo right', 'exo left', 'exo right',
                             'valid', 'invalid', 'ics fast', 'ics slow',
-                            'stim', 'stim_left', 'stim_right', 'stim_close','stim_xmiddle','stim_far',
-                            'stim_highest', 'stim_higher', 'stim_ymiddle', 'stim_lower', 'stim_lowest',
+                            'stim', 'stim_left', 'stim right', 'stim close','stim xmiddle','stim far',
+                            'stim highest', 'stim higher', 'stim ymiddle', 'stim lower', 'stim lowest',
                             'response']
     ch_types = ['misc'] + ['eeg'] * 32 + ['misc'] + ['stim'] * 22
 

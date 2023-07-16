@@ -42,3 +42,17 @@ def calculate_subject_psd(subject_ids, before_or_after, fmin, fmax):
         psd, freqs = mne.time_frequency.psd_multitaper(epochs, fmin=fmin, fmax=fmax, n_jobs=1)
         psds.append(psd)
     return psds
+
+
+def extract_events(condition_str,pieces):
+    # Convert logical operators to Python syntax
+    condition_str = condition_str.replace("AND", "and").replace("OR", "or")
+
+    # Create a condition lambda function from the string
+    condition_lambda = eval(f"lambda piece: any(({condition_str}))")
+
+    # Apply the condition to each piece
+    pieces_satisfying_condition = [piece for piece in pieces if condition_lambda(piece[:, 2])]
+
+    return pieces_satisfying_condition
+

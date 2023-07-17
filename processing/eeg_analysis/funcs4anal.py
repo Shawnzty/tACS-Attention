@@ -8,6 +8,7 @@ import pandas as pd
 # the following import is required for matplotlib < 3.2:
 from mpl_toolkits.mplot3d import Axes3D  # noqa
 import mne
+import re
 
 
 def load_and_epoching(subject_id, before_or_after, minus_t, to_t):
@@ -44,15 +45,13 @@ def calculate_subject_psd(subject_ids, before_or_after, fmin, fmax):
     return psds
 
 
-def extract_events(condition_str,pieces):
-    # Convert logical operators to Python syntax
-    condition_str = condition_str.replace("AND", "and").replace("OR", "or")
-
-    # Create a condition lambda function from the string
-    condition_lambda = eval(f"lambda piece: any(({condition_str}))")
-
-    # Apply the condition to each piece
-    pieces_satisfying_condition = [piece for piece in pieces if condition_lambda(piece[:, 2])]
-
-    return pieces_satisfying_condition
+def condition(condition_str):
+    # Replace logical operators with Python syntax and add necessary syntax for condition
+    condition_str = re.sub(r"(\b\d+\b)", r"any(piece[:, 2] == \1)", condition_str)
+    condition_str = condition_str.replace("AND", "&").replace("OR", "|")
+    
+    # Form the Python statement
+    python_statement = f"[piece for piece in pieces if {condition_str}]"
+    
+    return python_statement
 

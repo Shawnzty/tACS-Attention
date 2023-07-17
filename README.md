@@ -30,5 +30,6 @@ eeg_overview is the program to plot the overview of the EEG data. (not used any 
 
 - `eeg_overview`: show the overview of eeg data
 - `manual_pick_ica`: manually pick ICAs to remove or keep, and save in ic_to_remove.csv
+- `individual_analysis`: analysis of individual eeg data
 
 

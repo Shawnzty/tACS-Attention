@@ -45,3 +45,13 @@ def make_compare(subject_id, behavior_compare):
     behavior_compare.loc[behavior_compare['subject id'] == subject_id, 'RT median shorten %'] = median_diff/median_before*100
 
     return behavior_compare
+
+
+def remove_outlier(df):
+    # Assume df is your DataFrame and 'reaction time' is the column you are interested in
+    Q1 = df['reaction time'].quantile(0.25)
+    Q3 = df['reaction time'].quantile(0.75)
+    IQR = Q3 - Q1
+
+    # Only keep rows in dataframe that have 'reaction time' within Q1 - 1.5 IQR and Q3 + 1.5 IQR
+    filtered_df = df[~((df['reaction time'] < (Q1 - 1.5 * IQR)) |(df['reaction time'] > (Q3 + 1.5 * IQR)))]

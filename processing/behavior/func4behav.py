@@ -72,14 +72,13 @@ def make_compare(subject_id, behavior_before, behavior_after, behavior_compare, 
     return behavior_compare
 
 
-def remove_outlier(df):
+def remove_outlier(df, k=1.5):
     # Assume df is your DataFrame and 'reaction time' is the column you are interested in
     Q1 = df['reaction time'].quantile(0.25)
     Q3 = df['reaction time'].quantile(0.75)
     IQR = Q3 - Q1
 
     # Only keep rows in dataframe that have 'reaction time' within Q1 - 1.5 IQR and Q3 + 1.5 IQR
-    k = 1.5
     filtered_df = df[~((df['reaction time'] < (Q1 - k * IQR)) |(df['reaction time'] > (Q3 + k * IQR)))]
     # print('Removed outliers: ' + str(len(df) - len(filtered_df)))
     return filtered_df

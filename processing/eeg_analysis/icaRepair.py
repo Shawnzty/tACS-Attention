@@ -39,7 +39,7 @@ def icarepair(subject_id, before_or_after, df):
     ica.apply(raw_ica_applied)
 
     # Save the repaired raw
-    raw_save_path = os.path.join('..', '..','..', 'data', str(subject_id), 'repaired_' + before_or_after + '.fif')
+    raw_save_path = os.path.join('..', '..','..', 'data', str(subject_id), 'repaired_' + before_or_after + '_raw' + '.fif')
     raw_ica_applied.save(raw_save_path, overwrite=True)
 
 

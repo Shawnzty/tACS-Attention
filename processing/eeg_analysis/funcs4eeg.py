@@ -9,11 +9,13 @@ import pandas as pd
 from mpl_toolkits.mplot3d import Axes3D  # noqa
 import mne
 import re
+import scipy.signal
+
 
 
 def load_eeg(subject_id):
-    eeg_path_before = os.path.join('..', '..', '..','data', str(subject_id), 'repaired_before.fif')
-    eeg_path_after = os.path.join('..', '..', '..','data', str(subject_id), 'repaired_after.fif')
+    eeg_path_before = os.path.join('..', '..', '..','data', str(subject_id), 'repaired_before_raw.fif')
+    eeg_path_after = os.path.join('..', '..', '..','data', str(subject_id), 'repaired_after_raw.fif')
     eeg_before = mne.io.read_raw_fif(eeg_path_before, preload=True, verbose=False)
     eeg_after = mne.io.read_raw_fif(eeg_path_after, preload=True, verbose=False)
     # print(eeg.info['subject_info'],eeg.info['experimenter'])  
@@ -145,8 +147,10 @@ def inuse_trials(subject_id):
 def power_psd(psd, freqs, fmin, fmax):
     # mean power over epochs and channels
     freq_mask = (freqs >= fmin) & (freqs <= fmax)
-    power = np.mean(psd[:, :, freq_mask].sum(axis=2))
-    return power
+    int_power = psd[:, :, freq_mask].sum(axis=2)
+    median_power_epochs = np.median(int_power, axis=0)
+    max_power = np.max(median_power_epochs)
+    return max_power
 
 
 def pipeline_band_power(subject_id, case, watch, fmin, fmax, tmin, tmax):
@@ -160,7 +164,6 @@ def pipeline_band_power(subject_id, case, watch, fmin, fmax, tmin, tmax):
     psd, freqs = mne.time_frequency.psd_multitaper(epochs_before, fmin=fmin, fmax=fmax, n_jobs=1, verbose=False)
     power_before = power_psd(psd, freqs, fmin, fmax)
 
-
     events, event_dict = make_default_events(eeg_after)
     picked_events, picked_events_dict = make_custom_events(eeg_after, events, event_dict, trials_after, case)
     epochs_after = make_epochs(eeg_after, picked_events, picked_events_dict, watch, tmin=tmin, tmax=tmax)
@@ -168,3 +171,50 @@ def pipeline_band_power(subject_id, case, watch, fmin, fmax, tmin, tmax):
     power_after = power_psd(psd, freqs, fmin, fmax)
 
     return power_before, power_after
+
+
+def get_evoked_response(epochs):
+    evoked = epochs.get_data()
+    evoked = evoked[:,1:33,:]
+    evoked = np.median(evoked, axis=0) # median
+    evoked = np.median(evoked, axis=0) # median
+    return evoked
+
+
+def pipeline_evoked_response(subject_id, case, watch, tmin, tmax):
+    eeg_before, eeg_after = load_eeg(subject_id)
+    trials_before, trials_after = inuse_trials(subject_id)
+
+    events, event_dict = make_default_events(eeg_before)
+    picked_events, picked_events_dict = make_custom_events(eeg_before, events, event_dict, trials_before, case)
+    epochs_before = make_epochs(eeg_before, picked_events, picked_events_dict, watch, tmin=tmin, tmax=tmax)
+    evoked_before = get_evoked_response(epochs_before)
+
+    events, event_dict = make_default_events(eeg_after)
+    picked_events, picked_events_dict = make_custom_events(eeg_after, events, event_dict, trials_after, case)
+    epochs_after = make_epochs(eeg_after, picked_events, picked_events_dict, watch, tmin=tmin, tmax=tmax)
+    evoked_after = get_evoked_response(epochs_after)
+
+    return evoked_before, evoked_after
+
+
+def trimmed_mean_std(arr, axis=0):
+    # Sort the array along the specified axis
+    sorted_arr = np.sort(arr, axis=axis)
+
+    # Remove the smallest and largest values
+    trimmed_arr = sorted_arr[1:-1] if axis == 0 else sorted_arr[:, 1:-1]
+
+    # Calculate the mean and standard deviation
+    trimmed_mean = np.mean(trimmed_arr, axis=axis)
+    trimmed_std = np.std(trimmed_arr, axis=axis)
+
+    return trimmed_mean, trimmed_std
+
+
+def low_pass_filter(data, sfreq, cutoff=50, order=5):
+    nyquist = 0.5 * sfreq
+    normal_cutoff = cutoff / nyquist
+    b, a = scipy.signal.butter(order, normal_cutoff, btype='low', analog=False)
+    y = scipy.signal.filtfilt(b, a, data)
+    return y

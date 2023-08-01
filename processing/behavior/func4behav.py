@@ -15,8 +15,13 @@ def create_compare():
                                             'RT mean shorten %', 'RT std decrease', 'RT median shorten %', 'trials_before', 'trials_after'])
     behavior_compare['subject id'] = exp_info['subject id']
     behavior_compare['Real stimulation'] = exp_info['Real stimulation']
-
     return behavior_compare
+
+
+def create_allsubs_compare():
+    behavior_compare = pd.DataFrame(columns=['subject id', 'Real stimulation', 'session', 'type', 'cue','valid','ICS','stim','response','reaction time'])
+    experiment = pd.read_csv(os.path.join('..', '..', '..', 'data', 'experiment.csv'))
+    return behavior_compare, experiment
 
 
 def load_behavior(subject_id):
@@ -72,6 +77,37 @@ def make_compare(subject_id, behavior_before, behavior_after, behavior_compare, 
     return behavior_compare
 
 
+def allsubs_compare(subject_id, behavior_before, behavior_after, behavior_compare, experiment, verbose=False):
+    for i in range(0, behavior_before.shape[0]):
+        new_row = pd.DataFrame({'subject id': [subject_id],
+                                'Real stimulation': [experiment.loc[experiment['subject id'] == subject_id, 'Real stimulation'].values[0]],
+                                'session': ['before'],
+                                'type': [behavior_before['type'].iloc[i]],
+                                'cue': [behavior_before['cue'].iloc[i]],
+                                'valid': [behavior_before['valid'].iloc[i]],
+                                'ICS': [behavior_before['ICS'].iloc[i]],
+                                'stim': [behavior_before['stimulus side'].iloc[i]],
+                                'response': [behavior_before['response'].iloc[i]],
+                                'reaction time': [behavior_before['reaction time'].iloc[i]]})
+        behavior_compare = pd.concat([behavior_compare, new_row], ignore_index=True)
+
+
+    for i in range(0, behavior_after.shape[0]):
+        new_row = pd.DataFrame({'subject id': [subject_id],
+                                'Real stimulation': [experiment.loc[experiment['subject id'] == subject_id, 'Real stimulation'].values[0]],
+                                'session': ['before'],
+                                'type': [behavior_after['type'].iloc[i]],
+                                'cue': [behavior_after['cue'].iloc[i]],
+                                'valid': [behavior_after['valid'].iloc[i]],
+                                'ICS': [behavior_after['ICS'].iloc[i]],
+                                'stim': [behavior_after['stimulus side'].iloc[i]],
+                                'response': [behavior_after['response'].iloc[i]],
+                                'reaction time': [behavior_after['reaction time'].iloc[i]]})
+        behavior_compare = pd.concat([behavior_compare, new_row], ignore_index=True)
+
+    return behavior_compare
+
+
 def remove_outlier(df, k=1.5):
     # Assume df is your DataFrame and 'reaction time' is the column you are interested in
     Q1 = df['reaction time'].quantile(0.25)
@@ -100,7 +136,7 @@ def add_trial_num(subject_id):
     return True
 
 
-def do_compare(real_to_pick, sham_to_pick, watch_cases, watch_idxs):
+def auto_compare(real_to_pick, sham_to_pick, watch_cases, watch_idxs):
     p = list()
     for case in watch_cases:
         p_tmp = list()

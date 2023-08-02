@@ -12,7 +12,7 @@ def create_compare():
     # display(exp_info)
 
     behavior_compare = pd.DataFrame(columns=['subject id', 'Real stimulation', 'RT mean shorten', 'RT median shorten',
-                                            'RT mean shorten %', 'RT std decrease', 'RT median shorten %', 'trials_before', 'trials_after'])
+                                            'RT mean shorten %', 'RT median shorten %', 'RT std decrease', 'trials_before', 'trials_after'])
     behavior_compare['subject id'] = exp_info['subject id']
     behavior_compare['Real stimulation'] = exp_info['Real stimulation']
     return behavior_compare

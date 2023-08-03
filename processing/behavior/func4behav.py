@@ -137,9 +137,9 @@ def add_trial_num(subject_id):
 
 
 def auto_compare(real_to_pick, sham_to_pick, watch_cases, watch_idxs):
-    p = list()
+    p_values = pd.DataFrame(index=watch_cases, columns=watch_idxs)
     for case in watch_cases:
-        p_tmp = list()
+        
         behavior_compare = create_compare()
         for subject_id in range (1,19):
             behavior_before, behavior_after = load_behavior(subject_id)
@@ -155,12 +155,9 @@ def auto_compare(real_to_pick, sham_to_pick, watch_cases, watch_idxs):
             rt_diff_real = pd.to_numeric(rt_diff_real)
 
             U, p_value = stats.mannwhitneyu(rt_diff_sham, rt_diff_real)
-            p_tmp.append(round(p_value, 3))
+            p_values.loc[case, idx] = p_value
 
-        p.append(p_tmp)
-        
-    p = np.array(p).transpose().tolist()
-    return p
+    return p_values
 
 
 def filter_behav(case, behavior_before, behavior_after):

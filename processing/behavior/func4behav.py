@@ -35,8 +35,8 @@ def load_behavior(subject_id):
 
 def make_compare(subject_id, behavior_before, behavior_after, behavior_compare, verbose=False):
     # find response=1, remove too fast and outliers
-    respond_trials_before = behavior_before[(behavior_before['response'] == 1) & (behavior_before['reaction time'] > 0.001)]
-    respond_trials_after = behavior_after[(behavior_after['response'] == 1) & (behavior_after['reaction time'] > 0.001)]
+    respond_trials_before = behavior_before[(behavior_before['response'] == 1) & (behavior_before['reaction time'] > 0.05)]
+    respond_trials_after = behavior_after[(behavior_after['response'] == 1) & (behavior_after['reaction time'] > 0.05)]
 
     if verbose:
         print(str(subject_id) + ' before-' + str(len(respond_trials_before)) + ' after-' + str(len(respond_trials_after)))
@@ -115,7 +115,8 @@ def remove_outlier(df, k=1.5):
     IQR = Q3 - Q1
 
     # Only keep rows in dataframe that have 'reaction time' within Q1 - 1.5 IQR and Q3 + 1.5 IQR
-    filtered_df = df[~((df['reaction time'] < (Q1 - k * IQR)) |(df['reaction time'] > (Q3 + k * IQR)))]
+    # filtered_df = df[~((df['reaction time'] < (Q1 - k * IQR)) |(df['reaction time'] > (Q3 + k * IQR)))]
+    filtered_df = df[~(df['reaction time'] > (Q3 + k * IQR))]
     # print('Removed outliers: ' + str(len(df) - len(filtered_df)))
     return filtered_df
 
@@ -164,6 +165,7 @@ def filter_behav(case, behavior_before, behavior_after):
 
     if case == 'all':
         pass
+    
     elif case == 'endo':
         behavior_before = behavior_before[behavior_before['type'] == 1]
         behavior_after = behavior_after[behavior_after['type'] == 1]

@@ -19,7 +19,7 @@ def create_compare():
 
 
 def create_allsubs_compare():
-    behavior_compare = pd.DataFrame(columns=['subject id', 'Real stimulation', 'session', 'type', 'cue','valid','ICS','stim','response','reaction time'])
+    behavior_compare = pd.DataFrame(columns=['subject id', 'trial', 'Real stimulation', 'session', 'type', 'cue','valid','ICS','stim','response','reaction time'])
     experiment = pd.read_csv(os.path.join('..', '..', '..', 'data', 'experiment.csv'))
     return behavior_compare, experiment
 
@@ -80,6 +80,7 @@ def make_compare(subject_id, behavior_before, behavior_after, behavior_compare, 
 def allsubs_compare(subject_id, behavior_before, behavior_after, behavior_compare, experiment, verbose=False):
     for i in range(0, behavior_before.shape[0]):
         new_row = pd.DataFrame({'subject id': [subject_id],
+                                'trial': [behavior_before['trial'].iloc[i]],
                                 'Real stimulation': [experiment.loc[experiment['subject id'] == subject_id, 'Real stimulation'].values[0]],
                                 'session': ['before'],
                                 'type': [behavior_before['type'].iloc[i]],
@@ -94,8 +95,9 @@ def allsubs_compare(subject_id, behavior_before, behavior_after, behavior_compar
 
     for i in range(0, behavior_after.shape[0]):
         new_row = pd.DataFrame({'subject id': [subject_id],
+                                'trial': [behavior_after['trial'].iloc[i]],
                                 'Real stimulation': [experiment.loc[experiment['subject id'] == subject_id, 'Real stimulation'].values[0]],
-                                'session': ['before'],
+                                'session': ['after'],
                                 'type': [behavior_after['type'].iloc[i]],
                                 'cue': [behavior_after['cue'].iloc[i]],
                                 'valid': [behavior_after['valid'].iloc[i]],

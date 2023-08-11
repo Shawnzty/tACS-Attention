@@ -4,6 +4,13 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from scipy import stats
+from scipy.stats import lognorm, exponnorm, invgauss
+from scipy.optimize import curve_fit
+from sklearn.metrics import mean_squared_error
+from pyddm import Model, Sample, Fittable, Fitted
+from pyddm.models import DriftConstant, NoiseConstant, BoundConstant, OverlayNonDecision, ICPointSourceCenter, LossRobustLikelihood
+from pyddm.functions import fit_adjust_model, display_model
+import pyddm.plot
 
 
 def create_compare():
@@ -161,6 +168,99 @@ def auto_compare(real_to_pick, sham_to_pick, watch_cases, watch_idxs):
             p_values.loc[case, idx] = p_value
 
     return p_values
+
+
+def log_likelihood(data, x, pdf_x):
+    # evaluate: close to 0 is good
+    pdf_data = np.interp(np.sort(data), x, pdf_x)
+    epsilon = 1e-10  # Small constant to avoid taking log of zero
+    log_L = np.sum(np.log(pdf_data + epsilon))
+    return log_L
+
+def akaike(k, log_L):
+    # evaluate: smaller is better
+    return 2 * k - 2 * log_L
+
+def shifted_lognorm(x, s, scale, loc):
+    return lognorm.pdf(x, s, loc=loc, scale=scale)
+
+
+def fit_shift_lognorm(data, cutoff):
+
+    # Estimate initial parameters
+    shape, loc, scale = lognorm.fit(data)
+    params, _ = curve_fit(shifted_lognorm, np.sort(data), lognorm.pdf(np.sort(data), shape, loc=loc, scale=scale), p0=[shape, scale, loc])
+    # Generate x values
+    x = np.linspace(0, cutoff, 1000)
+    # Get the fitted distribution values
+    fitted_values = shifted_lognorm(x, *params)
+   
+    log_L = log_likelihood(data, x, fitted_values)
+    AIC = akaike(3,log_L)
+
+    return params, log_L, AIC
+
+
+def fit_exgaussian(data, cutoff):
+    # Fit Ex-Gaussian distribution
+    K, loc, scale = exponnorm.fit(data)
+    params = [K, loc, scale]
+    # Generate x values
+    x = np.linspace(0, cutoff, 1000)
+    # Compute the Ex-Gaussian PDF
+    fitted_values = exponnorm.pdf(x, K, loc, scale)
+
+    log_L = log_likelihood(data, x, fitted_values)
+    AIC = akaike(3,log_L)
+
+    return params, log_L, AIC
+
+
+def fit_ddm(data, cutoff):
+    rt = data.copy()
+    corr = np.ones(rt.shape[0])
+    M = np.column_stack((rt, corr))
+
+    ddm_data = Sample.from_numpy_array(M, [])
+    model_fit = Model(name='Fitted model',
+                    drift=DriftConstant(drift=Fittable(minval=1, maxval=10)),
+                    noise=NoiseConstant(noise=Fittable(minval=0.5, maxval=5)),
+                    bound=BoundConstant(B=Fittable(minval=0.5, maxval=5)),
+                    overlay=OverlayNonDecision(nondectime=Fittable(minval=0.01, maxval=0.3)),
+                    dx=.001, dt=.001, T_dur=2)
+    fit_adjust_model(ddm_data, model_fit,
+                    fitting_method="differential_evolution",
+                    lossfunction=LossRobustLikelihood, verbose=False)
+    # Get the fitted parameters
+    params = model_fit.parameters()
+    params = [item[1] for sublist in params.values() for item in sublist.items() if isinstance(item[1], Fitted)]
+
+    prediction = model_fit.solve()
+   
+    log_L = log_likelihood(data, prediction.t_domain, prediction.pdf("correct"))
+    AIC = akaike(4,log_L)
+
+    return params, log_L, AIC
+
+
+def shifted_invgauss(x, mu, loc, scale):
+    return invgauss.pdf(x, mu, loc=loc, scale=scale)
+
+
+def fit_shift_invgauss(data, cutoff):
+    # Estimate initial parameters
+    mu, loc, scale = invgauss.fit(data)
+    params = [mu, loc, scale]
+    # Generate x values
+    x = np.linspace(0, cutoff, 1000)
+    # Get the fitted distribution values
+    fitted_values = shifted_invgauss(x, mu, loc, scale)
+    
+    # Define the log-likelihood computation
+    log_L = log_likelihood(data, x, fitted_values)
+    AIC = akaike(3,log_L)
+
+    return params, log_L, AIC
 
 
 def filter_behav(case, behavior_before, behavior_after):

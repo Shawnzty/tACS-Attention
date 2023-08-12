@@ -226,19 +226,20 @@ def fit_ddm(data, cutoff):
                     drift=DriftConstant(drift=Fittable(minval=1, maxval=10)),
                     noise=NoiseConstant(noise=Fittable(minval=0.5, maxval=5)),
                     bound=BoundConstant(B=Fittable(minval=0.5, maxval=5)),
-                    overlay=OverlayNonDecision(nondectime=Fittable(minval=0.01, maxval=0.3)),
+                    overlay=OverlayNonDecision(nondectime=Fittable(minval=0.05, maxval=0.3)),
                     dx=.001, dt=.001, T_dur=2)
     fit_adjust_model(ddm_data, model_fit,
                     fitting_method="differential_evolution",
                     lossfunction=LossRobustLikelihood, verbose=False)
     # Get the fitted parameters
-    params = model_fit.parameters()
-    params = [item[1] for sublist in params.values() for item in sublist.items() if isinstance(item[1], Fitted)]
+    param_fitted = model_fit.parameters()
+    params = [item[1] for sublist in param_fitted.values() for item in sublist.items() if isinstance(item[1], Fitted)]
+    params = [float(value) for value in params]
 
     prediction = model_fit.solve()
-   
     log_L = log_likelihood(data, prediction.t_domain, prediction.pdf("correct"))
     AIC = akaike(4,log_L)
+    print(params)
 
     return params, log_L, AIC
 

@@ -198,7 +198,7 @@ def fit_shift_lognorm(data, cutoff):
     log_L = log_likelihood(data, x, fitted_values)
     AIC = akaike(3,log_L)
 
-    return params, log_L, AIC
+    return params.tolist(), log_L, AIC
 
 
 def fit_exgaussian(data, cutoff):
@@ -239,7 +239,6 @@ def fit_ddm(data, cutoff):
     prediction = model_fit.solve()
     log_L = log_likelihood(data, prediction.t_domain, prediction.pdf("correct"))
     AIC = akaike(4,log_L)
-    print(params)
 
     return params, log_L, AIC
 

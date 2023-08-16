@@ -36,8 +36,12 @@ eeg_overview is the program to plot the overview of the EEG data. (not used any 
 - `group_analysis`: (Not in use) analysis of group eeg data  
 
 ## `behavior` for behavior data
-- `behavior`: analysis of behavior data
+- `behavior`: basic analysis of behavior data
 - `func4behav`: functions for behavior analysis
-- `auto_sig`: automatic detection of significant comparison
+- `auto_significance`: automatic detection of significant comparison
+- `behavior_all_subs`: analysis of all subjects together
+- `distribution_all_subs`: distribution analysis of all subjects together
+- `distribution_by_subs`: distribution analysis of each subject
+- `each_sub`: analysis of each subject
 
 

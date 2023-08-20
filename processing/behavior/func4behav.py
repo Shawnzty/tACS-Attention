@@ -124,9 +124,9 @@ def remove_outlier(df, k=1.5):
     IQR = Q3 - Q1
 
     # Only keep rows in dataframe that have 'reaction time' within Q1 - 1.5 IQR and Q3 + 1.5 IQR
-    # filtered_df = df[~((df['reaction time'] < (Q1 - k * IQR)) |(df['reaction time'] > (Q3 + k * IQR)))]
-    filtered_df = df[~(df['reaction time'] > (Q3 + k * IQR))]
-    # print('Removed outliers: ' + str(len(df) - len(filtered_df)))
+    filtered_df = df[~((df['reaction time'] < (Q1 - k * IQR)) |(df['reaction time'] > (Q3 + k * IQR)))]
+    # filtered_df = df[~(df['reaction time'] > (Q3 + k * IQR))]
+    print('Removed outliers: ' + str(len(df) - len(filtered_df)))
     return filtered_df
 
 

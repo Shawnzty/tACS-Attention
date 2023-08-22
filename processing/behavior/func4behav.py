@@ -222,11 +222,11 @@ def fit_ddm(data, cutoff):
     M = np.column_stack((rt, corr))
 
     ddm_data = Sample.from_numpy_array(M, [])
-    model_fit = Model(name='Fitted model',
-                    drift=DriftConstant(drift=Fittable(minval=1, maxval=10)),
-                    noise=NoiseConstant(noise=Fittable(minval=0.5, maxval=5)),
-                    bound=BoundConstant(B=Fittable(minval=0.5, maxval=5)),
-                    overlay=OverlayNonDecision(nondectime=Fittable(minval=0.05, maxval=0.3)),
+    model_fit = Model(name='fitted model',
+                    drift=DriftConstant(drift=Fittable(minval=5, maxval=8)),
+                    noise=NoiseConstant(noise=Fittable(minval=0.5, maxval=1.5)),
+                    bound=BoundConstant(B=Fittable(minval=1, maxval=3)),
+                    overlay=OverlayNonDecision(nondectime=Fittable(minval=0.01, maxval=0.2)),
                     dx=.001, dt=.001, T_dur=2)
     fit_adjust_model(ddm_data, model_fit,
                     fitting_method="differential_evolution",

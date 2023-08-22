@@ -25,6 +25,17 @@ def create_compare():
     return behavior_compare
 
 
+def create_all_subs_together():
+    exp_path = os.path.join('..', '..', '..', 'data', 'experiment.csv')
+    exp_info = pd.read_csv(exp_path)
+    # display(exp_info)
+
+    behavior_compare = pd.DataFrame(columns=['subject id', 'Real stimulation', 'RT mean before', 'RT mean after','RT median before', 'RT median after', 'Trials before', 'Trials after'])
+    behavior_compare['subject id'] = exp_info['subject id']
+    behavior_compare['Real stimulation'] = exp_info['Real stimulation']
+    return behavior_compare
+
+
 def create_allsubs_compare():
     behavior_compare = pd.DataFrame(columns=['subject id', 'trial', 'Real stimulation', 'session', 'type', 'cue','valid','ICS','stim','response','reaction time'])
     experiment = pd.read_csv(os.path.join('..', '..', '..', 'data', 'experiment.csv'))
@@ -38,6 +49,42 @@ def load_behavior(subject_id):
     behavior_after = pd.read_csv(behavior_after_path)
 
     return behavior_before, behavior_after
+
+
+def table_allsubs_together(subject_id, behavior_before, behavior_after, behavior_compare, verbose=False):
+    # find response=1, remove too fast and outliers
+    respond_trials_before = behavior_before[(behavior_before['response'] == 1) & (behavior_before['reaction time'] > 0.05)].copy()
+    respond_trials_after = behavior_after[(behavior_after['response'] == 1) & (behavior_after['reaction time'] > 0.05)].copy()
+
+    # if verbose:
+    #     print(str(subject_id) + ' before-' + str(len(respond_trials_before)) + ' after-' + str(len(respond_trials_after)))
+    # respond_trials_before = remove_outlier(respond_trials_before)
+    # respond_trials_after = remove_outlier(respond_trials_after)
+    # if verbose:
+    #     print('Outliers removed: before-' + str(len(respond_trials_before)) + ' after-' + str(len(respond_trials_after)) + "\n")
+    
+    # behavior_compare.at[subject_id-1, 'trials_before'] = respond_trials_before['trial'].tolist()
+    # behavior_compare.at[subject_id-1, 'trials_after'] = respond_trials_after['trial'].tolist()
+
+    respond_trials_before.loc[:, 'reaction time'] *= 1000
+    respond_trials_after.loc[:, 'reaction time'] *= 1000
+
+    # Extract 'reaction time' column values as lists
+    data_before = respond_trials_before['reaction time'].tolist()
+    data_after = respond_trials_after['reaction time'].tolist()
+    
+    # Calculate means of data_before and data_after and add to the dataframe
+    mean_before = np.mean(data_before)
+    mean_after = np.mean(data_after)
+    median_before = np.median(data_before)
+    median_after = np.median(data_after)
+
+    behavior_compare.at[subject_id-1, 'RT mean before'] = mean_before
+    behavior_compare.at[subject_id-1, 'RT mean after'] = mean_after
+    behavior_compare.at[subject_id-1, 'RT median before'] = median_before
+    behavior_compare.at[subject_id-1, 'RT median after'] = median_after
+
+    return behavior_compare
 
 
 def make_compare(subject_id, behavior_before, behavior_after, behavior_compare, verbose=False):

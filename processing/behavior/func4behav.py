@@ -7,6 +7,7 @@ from scipy import stats
 from scipy.stats import lognorm, exponnorm, invgauss
 from scipy.optimize import curve_fit
 from sklearn.metrics import mean_squared_error
+from scipy.stats import ttest_ind, ttest_rel, mannwhitneyu
 from pyddm import Model, Sample, Fittable, Fitted
 from pyddm.models import DriftConstant, NoiseConstant, BoundConstant, OverlayNonDecision, ICPointSourceCenter, LossRobustLikelihood
 from pyddm.functions import fit_adjust_model, display_model
@@ -30,7 +31,8 @@ def create_all_subs_together():
     exp_info = pd.read_csv(exp_path)
     # display(exp_info)
 
-    behavior_compare = pd.DataFrame(columns=['subject id', 'Real stimulation', 'RT mean before', 'RT mean after','RT median before', 'RT median after', 'Trials before', 'Trials after'])
+    behavior_compare = pd.DataFrame(columns=['subject id', 'Real stimulation', 'RT mean before', 'RT mean after',
+                                             'RT median before', 'RT median after', 'RT mean shorten %', 'RT median shorten %'])
     behavior_compare['subject id'] = exp_info['subject id']
     behavior_compare['Real stimulation'] = exp_info['Real stimulation']
     return behavior_compare
@@ -76,13 +78,18 @@ def table_allsubs_together(subject_id, behavior_before, behavior_after, behavior
     # Calculate means of data_before and data_after and add to the dataframe
     mean_before = np.mean(data_before)
     mean_after = np.mean(data_after)
+    mean_diff = mean_before - mean_after
     median_before = np.median(data_before)
     median_after = np.median(data_after)
+    median_diff = median_before - median_after
 
     behavior_compare.at[subject_id-1, 'RT mean before'] = mean_before
     behavior_compare.at[subject_id-1, 'RT mean after'] = mean_after
+    behavior_compare.at[subject_id-1, 'RT mean shorten %'] = mean_diff/mean_before*100
+
     behavior_compare.at[subject_id-1, 'RT median before'] = median_before
     behavior_compare.at[subject_id-1, 'RT median after'] = median_after
+    behavior_compare.at[subject_id-1, 'RT median shorten %'] = median_diff/median_before*100
 
     return behavior_compare
 
@@ -164,16 +171,20 @@ def allsubs_compare(subject_id, behavior_before, behavior_after, behavior_compar
     return behavior_compare
 
 
-def remove_outlier(df, k=1.5):
+
+def remove_outlier(df, k=1.5, left=True, right=True, verbose=False):
     # Assume df is your DataFrame and 'reaction time' is the column you are interested in
     Q1 = df['reaction time'].quantile(0.25)
     Q3 = df['reaction time'].quantile(0.75)
     IQR = Q3 - Q1
 
-    # Only keep rows in dataframe that have 'reaction time' within Q1 - 1.5 IQR and Q3 + 1.5 IQR
-    filtered_df = df[~((df['reaction time'] < (Q1 - k * IQR)) |(df['reaction time'] > (Q3 + k * IQR)))]
-    # filtered_df = df[~(df['reaction time'] > (Q3 + k * IQR))]
-    print('Removed outliers: ' + str(len(df) - len(filtered_df)))
+    if left:
+        filtered_df = df[~(df['reaction time'] < (Q1 - k * IQR))]
+    if right:
+        filtered_df = df[~(df['reaction time'] > (Q3 + k * IQR))]
+    if verbose:
+        print('Removed outliers: ' + str(len(df)) + '-' +str(len(filtered_df)) + '=' + str(len(df)-len(filtered_df)))
+
     return filtered_df
 
 
@@ -363,23 +374,23 @@ def filter_behav(case, behavior_before, behavior_after):
         behavior_after = behavior_after[(behavior_after['type'] == 2) & (behavior_after['cue'] == 1)]
 
     elif case == 'stim left':
-        behavior_before = behavior_before[behavior_before['stimulus side'] == -1]
-        behavior_after = behavior_after[behavior_after['stimulus side'] == -1] 
+        behavior_before = behavior_before[behavior_before['stim'] == -1]
+        behavior_after = behavior_after[behavior_after['stim'] == -1] 
     elif case == 'endo stim left':
-        behavior_before = behavior_before[(behavior_before['type'] == 1) & (behavior_before['stimulus side'] == -1)]
-        behavior_after = behavior_after[(behavior_after['type'] == 1) & (behavior_after['stimulus side'] == -1)]
+        behavior_before = behavior_before[(behavior_before['type'] == 1) & (behavior_before['stim'] == -1)]
+        behavior_after = behavior_after[(behavior_after['type'] == 1) & (behavior_after['stim'] == -1)]
     elif case == 'exo stim left':
-        behavior_before = behavior_before[(behavior_before['type'] == 2) & (behavior_before['stimulus side'] == -1)]
-        behavior_after = behavior_after[(behavior_after['type'] == 2) & (behavior_after['stimulus side'] == -1)]
+        behavior_before = behavior_before[(behavior_before['type'] == 2) & (behavior_before['stim'] == -1)]
+        behavior_after = behavior_after[(behavior_after['type'] == 2) & (behavior_after['stim'] == -1)]
 
     elif case == 'stim right':
-        behavior_before = behavior_before[behavior_before['stimulus side'] == 1]
-        behavior_after = behavior_after[behavior_after['stimulus side'] == 1]   
+        behavior_before = behavior_before[behavior_before['stim'] == 1]
+        behavior_after = behavior_after[behavior_after['stim'] == 1]   
     elif case == 'endo stim right':
-        behavior_before = behavior_before[(behavior_before['type'] == 1) & (behavior_before['stimulus side'] == 1)]
-        behavior_after = behavior_after[(behavior_after['type'] == 1) & (behavior_after['stimulus side'] == 1)]
+        behavior_before = behavior_before[(behavior_before['type'] == 1) & (behavior_before['stim'] == 1)]
+        behavior_after = behavior_after[(behavior_after['type'] == 1) & (behavior_after['stim'] == 1)]
     elif case == 'exo stim right':
-        behavior_before = behavior_before[(behavior_before['type'] == 2) & (behavior_before['stimulus side'] == 1)]
-        behavior_after = behavior_after[(behavior_after['type'] == 2) & (behavior_after['stimulus side'] == 1)]    
+        behavior_before = behavior_before[(behavior_before['type'] == 2) & (behavior_before['stim'] == 1)]
+        behavior_after = behavior_after[(behavior_after['type'] == 2) & (behavior_after['stim'] == 1)]    
 
     return behavior_before, behavior_after

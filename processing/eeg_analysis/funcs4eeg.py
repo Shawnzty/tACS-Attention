@@ -1,7 +1,8 @@
+import sys
 import os
+sys.path.insert(0, os.path.abspath('..'))
 from scipy.io import loadmat
 from pathlib import Path
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -10,6 +11,9 @@ from mpl_toolkits.mplot3d import Axes3D  # noqa
 import mne
 import re
 import scipy.signal
+import behavior.func4behav as fb
+import imp
+imp.reload(fb)
 
 
 
@@ -181,7 +185,7 @@ def get_evoked_response(epochs):
     return evoked
 
 
-def pipeline_evoked_response(subject_id, case, watch, tmin, tmax):
+def pipeline_evoked_response_EMBC(subject_id, case, watch, tmin, tmax):
     eeg_before, eeg_after = load_eeg(subject_id)
     trials_before, trials_after = inuse_trials(subject_id)
 
@@ -218,3 +222,99 @@ def low_pass_filter(data, sfreq, cutoff=50, order=5):
     b, a = scipy.signal.butter(order, normal_cutoff, btype='low', analog=False)
     y = scipy.signal.filtfilt(b, a, data)
     return y
+
+
+def translate_case(case):
+    case_id_dict = {'all': '1', 'endo': '3 | 4', 'exo': '5 | 6', 'valid': '7', 'endo valid': '(3 | 4) & 7', 'exo valid': '(5 | 6) & 7',
+                    'invalid': '8', 'endo invalid': '(3 | 4) & 8', 'exo invalid': '(5 | 6) & 8',
+                    'cue left': '3 | 5', 'endo cue left': '3', 'exo cue left': '5', 'cue right': '4 | 6', 'endo cue right': '4', 'exo cue right': '6',
+                    'stim left': '12', 'endo stim left': '(3 | 4) & 12', 'exo stim left': '(5 | 6) & 12',
+                    'stim right': '13', 'endo stim right': '(3 | 4) & 13', 'exo stim right': '(5 | 6) & 13'}
+    case_by_id = case_id_dict[case]
+    return case_by_id
+
+def pipeline_evoked_response(subject_id, case, watch, tmin, tmax):
+    real_ids = [1, 3, 4, 5, 9, 12, 13, 17, 18]
+    sham_ids = [2, 6, 7, 8, 10, 11, 14, 15, 16]
+    case_by_id = translate_case(case)
+
+    behavior_compare, experiment = fb.create_allsubs_compare()
+    for subject_id in range (1,19):
+        behavior_before, behavior_after = fb.load_behavior(subject_id)
+        behavior_compare = fb.allsubs_compare(subject_id, behavior_before, behavior_after, behavior_compare, experiment, verbose=False)
+
+    behavior_compare = behavior_compare.loc[(behavior_compare['response'] == 1) & 
+                                            (behavior_compare['reaction time'] > 0.05) & (behavior_compare['reaction time'] < 1)]
+    behavior_before, behavior_after = fb.filter_behav(case, behavior_compare.loc[behavior_compare['session'] == 'before'], 
+                                                    behavior_compare.loc[behavior_compare['session'] == 'after'])
+
+    behavior_compare = pd.concat([behavior_before, behavior_after])
+    rt_sham_before = behavior_before.loc[behavior_compare['Real stimulation'] == 0]
+    rt_sham_after = behavior_after.loc[behavior_compare['Real stimulation'] == 0 ]
+    rt_real_before = behavior_before.loc[behavior_compare['Real stimulation'] == 1]
+    rt_real_after = behavior_after.loc[behavior_compare['Real stimulation'] == 1]
+
+    # preprocessing
+    k_out = [1, 0.9, 1, 0.9]
+    rt_sham_before = fb.remove_outlier(rt_sham_before, k=k_out[0], left=False, right=True, verbose=True)
+    rt_sham_after = fb.remove_outlier(rt_sham_after, k=k_out[1], left=True, right=False, verbose=True)
+    rt_real_before = fb.remove_outlier(rt_real_before, k=k_out[2], left=True, right=False, verbose=True)
+    rt_real_after = fb.remove_outlier(rt_real_after, k=k_out[3], left=False, right=True, verbose=True)
+
+    rt_sham_before = rt_sham_before.loc[:, 'reaction time'].tolist()
+    rt_sham_after = rt_sham_after.loc[:, 'reaction time'].tolist()
+    rt_real_before = rt_real_before.loc[:, 'reaction time'].tolist()
+    rt_real_after = rt_real_after.loc[:, 'reaction time'].tolist()
+    rt_sham_before = [num * 1000 for num in rt_sham_before]
+    rt_sham_after = [num * 1000 for num in rt_sham_after]
+    rt_real_before = [num * 1000 for num in rt_real_before]
+    rt_real_after = [num * 1000 for num in rt_real_after]
+
+    
+    # Calculate means
+    means = [np.mean(rt_sham_before), np.mean(rt_sham_after), np.mean(rt_real_before), np.mean(rt_real_after)]
+
+    # Calculate standard errors
+    std_errors = [
+        np.std(rt_sham_before) / np.sqrt(len(rt_sham_before)), np.std(rt_sham_after) / np.sqrt(len(rt_sham_after)),
+        np.std(rt_real_before) / np.sqrt(len(rt_real_before)), np.std(rt_real_after) / np.sqrt(len(rt_real_after))
+    ]
+
+    # Calculate t-tests
+    _, p_sham = mannwhitneyu(rt_sham_before, rt_sham_after)
+    _, p_real = mannwhitneyu(rt_real_before, rt_real_after)
+    _, p_before = mannwhitneyu(rt_sham_before, rt_real_before)
+    _, p_after = mannwhitneyu(rt_sham_after, rt_real_after)
+
+
+    # Calculate percentage changes
+    percent_change_sham = ((np.mean(rt_sham_after) - np.mean(rt_sham_before)) / np.mean(rt_sham_before)) * 100
+    percent_change_real = ((np.mean(rt_real_after) - np.mean(rt_real_before)) / np.mean(rt_real_before)) * 100
+
+    # Bar chart
+    labels = ['Sham Before', 'Sham After', 'Real Before', 'Real After']
+    colors = ['lightblue', 'blue', 'lightcoral', 'red']
+
+    fig, ax = plt.subplots()
+
+    bars = ax.bar(labels, means, yerr=std_errors, color=colors, capsize=10)
+
+    # Add p-values
+    heights = [bar.get_height() + error for bar, error in zip(bars, std_errors)]
+    fsize = 13
+    ax.text(0.5, heights[0] + 2, f'p = {p_sham*4:.4f}', ha='center', va='bottom', fontsize=fsize)
+    ax.text(2.5, heights[2] + 2, f'p = {p_real*4:.4f}', ha='center', va='bottom', fontsize=fsize)
+    ax.text(1, heights[0] + 8, f'p = {p_before*4:.4f}', ha='center', va='bottom', fontsize=fsize)
+    ax.text(2, heights[2] + 8, f'p = {p_after*4:.4f}', ha='center', va='bottom', fontsize=fsize)
+
+    # Add percentage changes
+    ax.text(0.5, heights[0] + 1, f'{percent_change_sham:.1f}%', ha='center', va='top', color='blue', fontsize=fsize)
+    ax.text(2.5, heights[2] + 1, f'{percent_change_real:.1f}%', ha='center', va='top', color='red', fontsize=fsize)
+
+    # Add some additional formatting if desired
+    ax.set_ylabel('Reaction Time (ms)')
+    ax.set_title(case)
+    ax.set_ylim([250, 400])  # Adjust as needed
+
+    save_path = os.path.join('..', '..', '..', 'docs', 'report', 'figs', case +'.png')
+    plt.savefig(save_path, format='png')

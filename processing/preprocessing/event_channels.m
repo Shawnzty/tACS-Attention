@@ -3,7 +3,7 @@ eeg_filenames = ["eeg_before", "eeg_after"];
 behavior_filenames = ["behavior_before", "behavior_after"];
 % save_filenames = ["eeg_before_addstim", "eeg_after_addstim"];
 
-for subject = 1:8
+for subject = 1:18
     folder = "../../../data/" + num2str(subject) + "/";
     for trial = 1:2
         disp(folder+eeg_filenames(trial));
@@ -87,40 +87,40 @@ while j <= length(trigger)
         j = j+fix;
         cue(j) = 1;
         % mark cue
-        if event(1) == 1
+        if event(2) == 1
             % endo
-            if event(2) == -1
+            if event(3) == -1
                 endo_left(j) = 1;
-            elseif event(2) == 1
+            elseif event(3) == 1
                 endo_right(j) = 1;
             end
-        elseif event(1) == 2
+        elseif event(2) == 2
             % exo
-            if event(2) == -1
+            if event(3) == -1
                 exo_left(j) = 1;
-            elseif event(2) == 1
+            elseif event(3) == 1
                 exo_right(j) = 1;
             end
         end
         
         % mark valid
-        if event(3) == 1
+        if event(4) == 1
             valid(j) = 1;
-        elseif event(3) == -1
+        elseif event(4) == -1
             invalid(j) = 1;
         end
-        
+
         % GOTO ics
-        if event(1) == 1
+        if event(2) == 1
             j = j + endo;
-        elseif event(1) == 2
+        elseif event(2) == 2
             j = j + exo;
         end
 
         % mark ics
-        if event(4) == 0.5
+        if event(5) == 0.5
             ics_fast(j) = 1;
-        elseif event(4) == 1
+        elseif event(5) == 1
             ics_slow(j) = 1;
         end
     end
@@ -128,39 +128,39 @@ while j <= length(trigger)
     % find stim
     if stim(j) == 1
         % disp(k);
-        if event(5) == -1
+        if event(6) == -1
             stim_left(j) = 1;
-        elseif event(5) == 1
+        elseif event(6) == 1
             stim_right(j) = 1;
         end
         
         % mark stim x
-        if event(6) == 969
+        if event(7) == 969
             stim_close(j) = 1;
-        elseif event(6) == 1131
+        elseif event(7) == 1131
             stim_xmiddle(j) = 1;
-        elseif event(6) == 1292
+        elseif event(7) == 1292
             stim_far(j) = 1;
         end
 
         % mark stim y
-        if event(7) == -220
+        if event(8) == -220
             stim_lowest(j) = 1;
-        elseif event(7) == -73
+        elseif event(8) == -73
             stim_lower(j) = 1;
-        elseif event(7) == 0
+        elseif event(8) == 0
             stim_ymiddle(j) = 1;
-        elseif event(7) == 73
+        elseif event(8) == 73
             stim_higher(j) = 1;
-        elseif event(7) == 220
+        elseif event(8) == 220
             stim_highest(j) = 1;
         end
         
         % GOTO wait response
         j = j + stim_t;
         % mark response
-        if event(8) == 1 && event(9) > 0.001
-            response(j+round(event(9)*sampling_freq)) = 1;
+        if event(9) == 1 && event(10) > 0.01
+            response(j+round(event(10)*sampling_freq)) = 1;
         end
 
         % next trial
@@ -170,7 +170,7 @@ while j <= length(trigger)
 end
 
 % concatenate
-eeg = zeros(55,size(eeg_origin,2));
+eeg = zeros(56,size(eeg_origin,2));
 eeg(1:34,:) = eeg_origin(1:34,:);
 
 eeg(35,:) = fixation;
@@ -205,7 +205,6 @@ eeg(56,:) = response;
 
 % save eeg data
 save(folder+eeg_filenames(trial), "eeg");
-
 
     end
 end

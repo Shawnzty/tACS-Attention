@@ -253,19 +253,15 @@ def reaction_time_table(case):
 
     # remove outliers
     k_out = [1, 0.9, 1, 0.9]
-    behav_sham_before = fb.remove_outlier(rt_sham_before, k=k_out[0], left=False, right=True, verbose=True)
-    behav_sham_after = fb.remove_outlier(rt_sham_after, k=k_out[1], left=True, right=False, verbose=True)
-    behav_real_before = fb.remove_outlier(rt_real_before, k=k_out[2], left=True, right=False, verbose=True)
-    behav_real_after = fb.remove_outlier(rt_real_after, k=k_out[3], left=False, right=True, verbose=True)
+    behav_sham_before = fb.remove_outlier(rt_sham_before, k=k_out[0], left=False, right=True, verbose=False)
+    behav_sham_after = fb.remove_outlier(rt_sham_after, k=k_out[1], left=True, right=False, verbose=False)
+    behav_real_before = fb.remove_outlier(rt_real_before, k=k_out[2], left=True, right=False, verbose=False)
+    behav_real_after = fb.remove_outlier(rt_real_after, k=k_out[3], left=False, right=True, verbose=False)
 
     rt_sham_before = behav_sham_before.loc[:, 'reaction time'].tolist()
     rt_sham_after = behav_sham_after.loc[:, 'reaction time'].tolist()
     rt_real_before = behav_real_before.loc[:, 'reaction time'].tolist()
     rt_real_after = behav_real_after.loc[:, 'reaction time'].tolist()
-    rt_sham_before = [num * 1000 for num in rt_sham_before]
-    rt_sham_after = [num * 1000 for num in rt_sham_after]
-    rt_real_before = [num * 1000 for num in rt_real_before]
-    rt_real_after = [num * 1000 for num in rt_real_after]
 
     # Calculate means
     means = [np.mean(rt_sham_before), np.mean(rt_sham_after), np.mean(rt_real_before), np.mean(rt_real_after)]

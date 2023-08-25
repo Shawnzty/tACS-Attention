@@ -233,11 +233,8 @@ def translate_case(case):
     case_by_id = case_id_dict[case]
     return case_by_id
 
-def pipeline_evoked_response(subject_id, case, watch, tmin, tmax):
-    real_ids = [1, 3, 4, 5, 9, 12, 13, 17, 18]
-    sham_ids = [2, 6, 7, 8, 10, 11, 14, 15, 16]
-    case_by_id = translate_case(case)
 
+def reaction_time_table(case):
     behavior_compare, experiment = fb.create_allsubs_compare()
     for subject_id in range (1,19):
         behavior_before, behavior_after = fb.load_behavior(subject_id)
@@ -254,23 +251,22 @@ def pipeline_evoked_response(subject_id, case, watch, tmin, tmax):
     rt_real_before = behavior_before.loc[behavior_compare['Real stimulation'] == 1]
     rt_real_after = behavior_after.loc[behavior_compare['Real stimulation'] == 1]
 
-    # preprocessing
+    # remove outliers
     k_out = [1, 0.9, 1, 0.9]
-    rt_sham_before = fb.remove_outlier(rt_sham_before, k=k_out[0], left=False, right=True, verbose=True)
-    rt_sham_after = fb.remove_outlier(rt_sham_after, k=k_out[1], left=True, right=False, verbose=True)
-    rt_real_before = fb.remove_outlier(rt_real_before, k=k_out[2], left=True, right=False, verbose=True)
-    rt_real_after = fb.remove_outlier(rt_real_after, k=k_out[3], left=False, right=True, verbose=True)
+    behav_sham_before = fb.remove_outlier(rt_sham_before, k=k_out[0], left=False, right=True, verbose=True)
+    behav_sham_after = fb.remove_outlier(rt_sham_after, k=k_out[1], left=True, right=False, verbose=True)
+    behav_real_before = fb.remove_outlier(rt_real_before, k=k_out[2], left=True, right=False, verbose=True)
+    behav_real_after = fb.remove_outlier(rt_real_after, k=k_out[3], left=False, right=True, verbose=True)
 
-    rt_sham_before = rt_sham_before.loc[:, 'reaction time'].tolist()
-    rt_sham_after = rt_sham_after.loc[:, 'reaction time'].tolist()
-    rt_real_before = rt_real_before.loc[:, 'reaction time'].tolist()
-    rt_real_after = rt_real_after.loc[:, 'reaction time'].tolist()
+    rt_sham_before = behav_sham_before.loc[:, 'reaction time'].tolist()
+    rt_sham_after = behav_sham_after.loc[:, 'reaction time'].tolist()
+    rt_real_before = behav_real_before.loc[:, 'reaction time'].tolist()
+    rt_real_after = behav_real_after.loc[:, 'reaction time'].tolist()
     rt_sham_before = [num * 1000 for num in rt_sham_before]
     rt_sham_after = [num * 1000 for num in rt_sham_after]
     rt_real_before = [num * 1000 for num in rt_real_before]
     rt_real_after = [num * 1000 for num in rt_real_after]
 
-    
     # Calculate means
     means = [np.mean(rt_sham_before), np.mean(rt_sham_after), np.mean(rt_real_before), np.mean(rt_real_after)]
 
@@ -280,41 +276,52 @@ def pipeline_evoked_response(subject_id, case, watch, tmin, tmax):
         np.std(rt_real_before) / np.sqrt(len(rt_real_before)), np.std(rt_real_after) / np.sqrt(len(rt_real_after))
     ]
 
-    # Calculate t-tests
-    _, p_sham = mannwhitneyu(rt_sham_before, rt_sham_after)
-    _, p_real = mannwhitneyu(rt_real_before, rt_real_after)
-    _, p_before = mannwhitneyu(rt_sham_before, rt_real_before)
-    _, p_after = mannwhitneyu(rt_sham_after, rt_real_after)
+    return behav_sham_before, behav_sham_after, behav_real_before, behav_real_after, means, std_errors
 
 
-    # Calculate percentage changes
-    percent_change_sham = ((np.mean(rt_sham_after) - np.mean(rt_sham_before)) / np.mean(rt_sham_before)) * 100
-    percent_change_real = ((np.mean(rt_real_after) - np.mean(rt_real_before)) / np.mean(rt_real_before)) * 100
+def onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after):
+    eeg_before, eeg_after = load_eeg(subject_id)
 
-    # Bar chart
-    labels = ['Sham Before', 'Sham After', 'Real Before', 'Real After']
-    colors = ['lightblue', 'blue', 'lightcoral', 'red']
+    events, event_dict = make_default_events(eeg_before)
+    picked_events, picked_events_dict = make_custom_events(eeg_before, events, event_dict, trials_before, case_by_id)
+    epochs_before = make_epochs(eeg_before, picked_events, picked_events_dict, watch, tmin=tmin, tmax=tmax)
+    evoked_before = get_evoked_response(epochs_before)
 
-    fig, ax = plt.subplots()
+    events, event_dict = make_default_events(eeg_after)
+    picked_events, picked_events_dict = make_custom_events(eeg_after, events, event_dict, trials_after, case_by_id)
+    epochs_after = make_epochs(eeg_after, picked_events, picked_events_dict, watch, tmin=tmin, tmax=tmax)
+    evoked_after = get_evoked_response(epochs_after)
 
-    bars = ax.bar(labels, means, yerr=std_errors, color=colors, capsize=10)
+    return evoked_before, evoked_after
 
-    # Add p-values
-    heights = [bar.get_height() + error for bar, error in zip(bars, std_errors)]
-    fsize = 13
-    ax.text(0.5, heights[0] + 2, f'p = {p_sham*4:.4f}', ha='center', va='bottom', fontsize=fsize)
-    ax.text(2.5, heights[2] + 2, f'p = {p_real*4:.4f}', ha='center', va='bottom', fontsize=fsize)
-    ax.text(1, heights[0] + 8, f'p = {p_before*4:.4f}', ha='center', va='bottom', fontsize=fsize)
-    ax.text(2, heights[2] + 8, f'p = {p_after*4:.4f}', ha='center', va='bottom', fontsize=fsize)
 
-    # Add percentage changes
-    ax.text(0.5, heights[0] + 1, f'{percent_change_sham:.1f}%', ha='center', va='top', color='blue', fontsize=fsize)
-    ax.text(2.5, heights[2] + 1, f'{percent_change_real:.1f}%', ha='center', va='top', color='red', fontsize=fsize)
+def get_inuse_trials(subject_id, before, after):
+    trials_before = before.loc[before['subject id'] == subject_id, 'trial'].tolist()
+    trials_after = after.loc[after['subject id'] == subject_id, 'trial'].tolist()
+    return trials_before, trials_after
 
-    # Add some additional formatting if desired
-    ax.set_ylabel('Reaction Time (ms)')
-    ax.set_title(case)
-    ax.set_ylim([250, 400])  # Adjust as needed
+def pipeline_evoked_response(case, watch, tmin, tmax):
+    real_ids = [1, 3, 4, 5, 9, 12, 13, 17, 18]
+    sham_ids = [2, 6, 7, 8, 10, 11, 14, 15, 16]
+    real_evoked_before = []
+    real_evoked_after = []
+    sham_evoked_before = []
+    sham_evoked_after = []
 
-    save_path = os.path.join('..', '..', '..', 'docs', 'report', 'figs', case +'.png')
-    plt.savefig(save_path, format='png')
+    case_by_id = translate_case(case)
+
+    behav_sham_before, behav_sham_after, behav_real_before, behav_real_after, means, std_errors = reaction_time_table(case)
+
+    for subject_id in sham_ids:
+        trials_before, trials_after = get_inuse_trials(subject_id, behav_sham_before, behav_sham_after)
+        evoked_before, evoked_after = onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after)
+        real_evoked_before.append(evoked_before)
+        real_evoked_after.append(evoked_after)
+    
+    for subject_id in real_ids:
+        trials_before, trials_after = get_inuse_trials(subject_id, behav_real_before, behav_real_after)
+        evoked_before, evoked_after = onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after)
+        sham_evoked_before.append(evoked_before)
+        sham_evoked_after.append(evoked_after)
+
+    return sham_evoked_before, sham_evoked_after, real_evoked_before, real_evoked_after, means, std_errors

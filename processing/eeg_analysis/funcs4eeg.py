@@ -180,8 +180,8 @@ def pipeline_band_power(subject_id, case, watch, fmin, fmax, tmin, tmax):
 def get_evoked_response(epochs):
     evoked = epochs.get_data()
     evoked = evoked[:,1:33,:]
-    evoked = np.median(evoked, axis=0) # median
-    evoked = np.median(evoked, axis=0) # median
+    # evoked = np.median(evoked, axis=0) # median
+    # evoked = np.median(evoked, axis=0) # median
     return evoked
 
 
@@ -234,7 +234,7 @@ def translate_case(case):
     return case_by_id
 
 
-def reaction_time_table(case):
+def reaction_time_table(case, verbose=False):
     behavior_compare, experiment = fb.create_allsubs_compare()
     for subject_id in range (1,19):
         behavior_before, behavior_after = fb.load_behavior(subject_id)
@@ -253,10 +253,10 @@ def reaction_time_table(case):
 
     # remove outliers
     k_out = [1, 0.9, 1, 0.9]
-    behav_sham_before = fb.remove_outlier(rt_sham_before, k=k_out[0], left=False, right=True, verbose=False)
-    behav_sham_after = fb.remove_outlier(rt_sham_after, k=k_out[1], left=True, right=False, verbose=False)
-    behav_real_before = fb.remove_outlier(rt_real_before, k=k_out[2], left=True, right=False, verbose=False)
-    behav_real_after = fb.remove_outlier(rt_real_after, k=k_out[3], left=False, right=True, verbose=False)
+    behav_sham_before = fb.remove_outlier(rt_sham_before, k=k_out[0], left=False, right=True, verbose=verbose)
+    behav_sham_after = fb.remove_outlier(rt_sham_after, k=k_out[1], left=True, right=False, verbose=verbose)
+    behav_real_before = fb.remove_outlier(rt_real_before, k=k_out[2], left=True, right=False, verbose=verbose)
+    behav_real_after = fb.remove_outlier(rt_real_after, k=k_out[3], left=False, right=True, verbose=verbose)
 
     rt_sham_before = behav_sham_before.loc[:, 'reaction time'].tolist()
     rt_sham_after = behav_sham_after.loc[:, 'reaction time'].tolist()
@@ -264,15 +264,15 @@ def reaction_time_table(case):
     rt_real_after = behav_real_after.loc[:, 'reaction time'].tolist()
 
     # Calculate means
-    means = [np.mean(rt_sham_before), np.mean(rt_sham_after), np.mean(rt_real_before), np.mean(rt_real_after)]
+    rt_means = [np.mean(rt_sham_before), np.mean(rt_sham_after), np.mean(rt_real_before), np.mean(rt_real_after)]
 
     # Calculate standard errors
-    std_errors = [
+    rt_std_errors = [
         np.std(rt_sham_before) / np.sqrt(len(rt_sham_before)), np.std(rt_sham_after) / np.sqrt(len(rt_sham_after)),
         np.std(rt_real_before) / np.sqrt(len(rt_real_before)), np.std(rt_real_after) / np.sqrt(len(rt_real_after))
     ]
 
-    return behav_sham_before, behav_sham_after, behav_real_before, behav_real_after, means, std_errors
+    return behav_sham_before, behav_sham_after, behav_real_before, behav_real_after, rt_means, rt_std_errors
 
 
 def onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after):
@@ -296,28 +296,29 @@ def get_inuse_trials(subject_id, before, after):
     trials_after = after.loc[after['subject id'] == subject_id, 'trial'].tolist()
     return trials_before, trials_after
 
+
 def pipeline_evoked_response(case, watch, tmin, tmax):
     real_ids = [1, 3, 4, 5, 9, 12, 13, 17, 18]
     sham_ids = [2, 6, 7, 8, 10, 11, 14, 15, 16]
-    real_evoked_before = []
-    real_evoked_after = []
-    sham_evoked_before = []
-    sham_evoked_after = []
+    sham_evoked_before = np.empty((0, 32, round((tmax-tmin)*1200+1)))
+    sham_evoked_after = np.empty((0, 32, round((tmax-tmin)*1200+1)))
+    real_evoked_before = np.empty((0, 32, round((tmax-tmin)*1200+1)))
+    real_evoked_after = np.empty((0, 32, round((tmax-tmin)*1200+1)))
 
     case_by_id = translate_case(case)
 
-    behav_sham_before, behav_sham_after, behav_real_before, behav_real_after, means, std_errors = reaction_time_table(case)
+    behav_sham_before, behav_sham_after, behav_real_before, behav_real_after, rt_means, rt_std_errors = reaction_time_table(case)
 
     for subject_id in sham_ids:
         trials_before, trials_after = get_inuse_trials(subject_id, behav_sham_before, behav_sham_after)
         evoked_before, evoked_after = onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after)
-        real_evoked_before.append(evoked_before)
-        real_evoked_after.append(evoked_after)
+        sham_evoked_before = np.concatenate((sham_evoked_before, evoked_before), axis=0)
+        sham_evoked_after = np.concatenate((sham_evoked_after, evoked_after), axis=0)
     
     for subject_id in real_ids:
         trials_before, trials_after = get_inuse_trials(subject_id, behav_real_before, behav_real_after)
         evoked_before, evoked_after = onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after)
-        sham_evoked_before.append(evoked_before)
-        sham_evoked_after.append(evoked_after)
+        real_evoked_before = np.concatenate((real_evoked_before, evoked_before), axis=0)
+        real_evoked_after = np.concatenate((real_evoked_after, evoked_after), axis=0)
 
-    return sham_evoked_before, sham_evoked_after, real_evoked_before, real_evoked_after, means, std_errors
+    return sham_evoked_before, sham_evoked_after, real_evoked_before, real_evoked_after, rt_means, rt_std_errors

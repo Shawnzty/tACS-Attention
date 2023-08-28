@@ -202,18 +202,29 @@ def pipeline_evoked_response_EMBC(subject_id, case, watch, tmin, tmax):
     return evoked_before, evoked_after
 
 
-def trimmed_mean_std(arr, axis=0):
-    # Sort the array along the specified axis
-    sorted_arr = np.sort(arr, axis=axis)
+def trimmed_mean_std(data, axis=0, k=1, verbose=False):
+    # Calculate Q1 and Q3 for each column of the sorted data
+    q1 = np.percentile(data, 25, axis=axis)
+    q3 = np.percentile(data, 75, axis=axis)
+    iqr = q3 - q1
 
-    # Remove the smallest and largest values
-    trimmed_arr = sorted_arr[1:-1] if axis == 0 else sorted_arr[:, 1:-1]
+    # Masks for non-outlier values
+    mask = (data >= (q1 - k*iqr)[None, :]) & (data <= (q3 + k*iqr)[None, :])
 
-    # Calculate the mean and standard deviation
-    trimmed_mean = np.mean(trimmed_arr, axis=axis)
-    trimmed_std = np.std(trimmed_arr, axis=axis)
+    # Compute trimmed mean and std
+    trimmed_data = np.where(mask, data, np.nan)
+    trimmed_mean = np.nanmean(trimmed_data, axis=axis)
+    trimmed_SEM = np.nanstd(trimmed_data, axis=axis)/np.sqrt(np.sum(mask, axis=axis))
 
-    return trimmed_mean, trimmed_std
+    # Calculate the number of all trials and the number of outliers
+    n_total = data.shape[axis]
+    n_outliers = n_total - np.sum(mask, axis=axis)
+
+    if verbose:
+        # Print the total number of trials and the number of outliers removed
+        print(f"All trials: {n_total}, removed outliers: {round(np.sum(n_outliers)/n_total)}")
+
+    return trimmed_mean, trimmed_SEM
 
 
 def low_pass_filter(data, sfreq, cutoff=50, order=5):
@@ -322,3 +333,90 @@ def pipeline_evoked_response(case, watch, tmin, tmax):
         real_evoked_after = np.concatenate((real_evoked_after, evoked_after), axis=0)
 
     return sham_evoked_before, sham_evoked_after, real_evoked_before, real_evoked_after, rt_means, rt_std_errors
+
+
+def makeup_subject(eeg_data, tmin, tmax):
+    # get placement data of standard 10-20 system
+    montage_1020 = mne.channels.make_standard_montage('standard_1020')
+    positions_1020 = montage_1020._get_ch_pos()
+    elec_coords_1020 = {ch_name: coord for ch_name, coord in positions_1020.items() if ch_name in montage_1020.ch_names}
+
+    # Define channel names and types
+    ch_names = ['Fp1', 'Fp2', 
+                        'AF3', 'AF4', 
+                        'F7', 'F3', 'Fz', 'F4', 'F8',
+                        'FC1', 'FC2',
+                        'T7', 'C3', 'Cz', 'C4', 'T8',
+                        'CP5', 'CP1', 'CP2', 'CP6',
+                        'P7', 'P5', 'P3', 'Pz', 'P4', 'P6', 'P8',
+                        'PO3', 'PO4',
+                        'O1', 'Oz', 'O2'] + ['stim']
+    ch_types = ['eeg'] * 32 + ['stim']
+
+    # Create the info object
+    info = mne.create_info(ch_names, sfreq=1200, ch_types=ch_types)
+    # Create raw object
+    raw = mne.io.RawArray(eeg_data, info)
+
+    # manually add the placement of electrodes
+    elec_coords = {
+        'Fp1': elec_coords_1020['Fp1'],
+        'Fp2': elec_coords_1020['Fp2'],
+        'AF3': elec_coords_1020['AF3'],
+        'AF4': elec_coords_1020['AF4'],
+        'F7': elec_coords_1020['F7'],
+        'F3': elec_coords_1020['F3'],
+        'Fz': elec_coords_1020['Fz'],
+        'F4': elec_coords_1020['F4'],
+        'F8': elec_coords_1020['F8'],
+        'FC1': elec_coords_1020['FC1'],
+        'FC2': elec_coords_1020['FC2'],
+        'T7': elec_coords_1020['T7'],
+        'C3': elec_coords_1020['C3'],
+        'Cz': elec_coords_1020['Cz'],
+        'C4': elec_coords_1020['C4'],
+        'T8': elec_coords_1020['T8'],
+        'CP5': elec_coords_1020['CP5'],
+        'CP1': elec_coords_1020['CP1'],
+        'CP2': elec_coords_1020['CP2'],
+        'CP6': elec_coords_1020['CP6'],
+        'P7': elec_coords_1020['P7'],
+        'P5': elec_coords_1020['P5'],
+        'P3': elec_coords_1020['P3'],
+        'Pz': elec_coords_1020['Pz'],
+        'P4': elec_coords_1020['P4'],
+        'P6': elec_coords_1020['P6'],
+        'P8': elec_coords_1020['P8'],
+        'PO3': elec_coords_1020['PO3'],
+        'PO4': elec_coords_1020['PO4'],
+        'O1': elec_coords_1020['O1'],
+        'Oz': elec_coords_1020['Oz'],
+        'O2': elec_coords_1020['O2'],
+    }
+
+    # Create the montage object
+    montage = mne.channels.make_dig_montage(elec_coords, coord_frame='head')
+
+    # add info and montage to raw object
+    raw.set_montage(montage)
+
+    # events
+    events = mne.find_events(raw, stim_channel="stim")
+    event_dict = {"stim": 1}
+    epochs = mne.Epochs(raw, events, event_id=event_dict, tmin=tmin, tmax=tmax, baseline=(0, 0), preload=True, verbose=False)
+
+    return epochs.average()
+
+
+def pick_cortex(command):
+    channels = {}
+    if 'f' in command:
+        channels.update({'Fp1':1, 'Fp2':2, 'AF3':3, 'AF4':4, 'F7':5, 'F3':6, 'Fz':7, 'F4':8, 'F8':9, 'FC1':10, 'FC2':11}) # 11
+    if 'p' in command:
+        channels.update({'C3':13, 'Cz':14, 'C4':15, 'CP5':17, 'CP1':18, 'CP2':19, 'CP6':20, 'P5':22, 'P3':23, 'Pz':24, 'P4':25, 'P6':26}) # 12
+    if 'o' in command:
+        channels.update({'PO3':28, 'PO4':29, 'O1':30, 'Oz':31, 'O2':32}) # 5
+    if 't' in command:
+        channels.update({'T7':12, 'T8':16, 'P7':21, 'P8':27}) # 4
+
+    return channels

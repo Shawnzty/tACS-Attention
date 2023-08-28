@@ -95,9 +95,9 @@ def mkraw(subject_id, before_or_after):
     raw_save_path = os.path.join('..', '..', '..', 'data', str(subject_id), 'raw_' + before_or_after + '.fif')
     raw.save(raw_save_path, overwrite=True)
 
-    fig = mne.viz.plot_raw_psd(raw, fmax=150, spatial_colors=True)
-    plot_save_path = os.path.join('..', '..', '..', 'data', 'psd', str(subject_id) + '_' + before_or_after + '.png')
-    fig.savefig(plot_save_path)
+    # fig = mne.viz.plot_raw_psd(raw, fmax=150, spatial_colors=True)
+    # plot_save_path = os.path.join('..', '..', '..', 'data', 'psd', str(subject_id) + '_' + before_or_after + '.png')
+    # fig.savefig(plot_save_path)
 
 # main
 script_dir = os.path.dirname(os.path.realpath(__file__))

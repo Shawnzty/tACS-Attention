@@ -470,3 +470,38 @@ def onesub_ERP_mne(subject_id, case_by_id, watch, tmin, tmax, trials_before, tri
     evoked_after = epochs_after.average()
 
     return evoked_before, evoked_after
+
+
+def pipeline_FBP_allsubs(case):
+    case_by_id = translate_case(case)
+    behav_sham_before, behav_sham_after, behav_real_before, behav_real_after, rt_means, rt_std_errors = reaction_time_table(case)
+
+    real_ids = [1, 3, 4, 5, 9, 12, 13, 17, 18]
+    sham_ids = [2, 6, 7, 8, 10, 11, 14, 15, 16]
+    sham_before = np.empty((5, 32, behav_sham_before.shape[0]))
+    sham_after = np.empty((5, 32, behav_sham_after.shape[0]))
+    real_before = np.empty((5, 32, behav_real_before.shape[0]))
+    real_after = np.empty((5, 32, behav_real_after.shape[0]))
+
+    for subject_id in sham_ids:
+        trials_before, trials_after = get_inuse_trials(subject_id, behav_sham_before, behav_sham_after)
+        FBP_before, FBP_after = onesub_FBP(subject_id, case_by_id, trials_before, trials_after)
+        sham_before = np.concatenate((sham_before, FBP_before), axis=2)
+        sham_after = np.concatenate((sham_after, FBP_after), axis=2)
+    
+    for subject_id in real_ids:
+        trials_before, trials_after = get_inuse_trials(subject_id, behav_real_before, behav_real_after)
+        FBP_before, FBP_after = onesub_FBP(subject_id, case_by_id, trials_before, trials_after)
+        real_before = np.concatenate((real_before, FBP_before), axis=2)
+        real_after = np.concatenate((real_after, FBP_after), axis=2)
+
+    return sham_before, sham_after, real_before, real_after
+
+
+def onesub_FBP(subject_id, case_by_id, trials_before, trials_after):
+    eeg_before, eeg_after = load_eeg(subject_id)
+
+    events, event_dict = make_default_events(eeg_before)
+    picked_events, picked_events_dict = make_custom_events(eeg_before, events, event_dict, trials_before, case_by_id)
+
+    return eeg_before, picked_events, picked_events_dict

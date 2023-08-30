@@ -11,6 +11,7 @@ from mpl_toolkits.mplot3d import Axes3D  # noqa
 import mne
 import re
 import scipy.signal
+from scipy.signal import welch
 import behavior.func4behav as fb
 import imp
 imp.reload(fb)
@@ -96,12 +97,10 @@ def make_custom_events(eeg, events, event_dict, behav_trials, case):
     # Select pieces that exist (are within the range of the pieces list)
     pieces = [pieces[i] for i in behav_trials if i < len(pieces)]
 
-    the_pieces = eval(condition(case))
+    the_pieces = eval(condition(case)) # if behav_trials hasn't considered case
     picked_events = np.vstack(the_pieces)
+    # picked_events = np.vstack(pieces)
     picked_events_dict = {key: value for key, value in event_dict.items() if value in picked_events[:, 2]}
-
-    # fig = mne.viz.plot_events(picked_events, event_id=picked_events_dict, sfreq=eeg.info['sfreq'], first_samp=eeg.first_samp)
-
     return picked_events, picked_events_dict
 
 
@@ -499,9 +498,54 @@ def pipeline_FBP_allsubs(case):
 
 
 def onesub_FBP(subject_id, case_by_id, trials_before, trials_after):
+    # laod eeg raw file
+    print(subject_id)
     eeg_before, eeg_after = load_eeg(subject_id)
+    print('before...')
+    fbp_before = onesession_FBP(eeg_before, trials_before, case_by_id)
+    print('after...')
+    fbp_after = onesession_FBP(eeg_after, trials_after, case_by_id)
 
-    events, event_dict = make_default_events(eeg_before)
-    picked_events, picked_events_dict = make_custom_events(eeg_before, events, event_dict, trials_before, case_by_id)
+    return fbp_before, fbp_after
 
-    return eeg_before, picked_events, picked_events_dict
+
+def onesession_FBP(eeg_data, trials, case_by_id):
+    fbp_session = np.empty((5, 32, 0))
+    
+    events, event_dict = make_default_events(eeg_data)
+    picked_events, picked_events_dict = make_custom_events(eeg_data, events, event_dict, trials, case_by_id)
+    trial_start_times, trial_end_times = start_end_times(picked_events)
+    eeg_data = eeg_data.get_data()[1:33, :]
+    for i, end_time in enumerate(trial_end_times):
+        trial_eeg = eeg_data[:,trial_start_times[i]:end_time]
+        fbp = compute_band_power(trial_eeg)
+        fbp_session = np.concatenate((fbp_session, fbp[:, :, None]), axis=2)
+
+    return fbp_session
+
+def start_end_times(picked_events):
+    trial_fixations = picked_events[picked_events[:, 2] == 1]
+    trial_stims = picked_events[picked_events[:, 2] == 11]
+    trial_start_times = trial_fixations[:,0] # time steps of fixation onsets
+    trial_end_times = (trial_stims[:,0] + (1200*1.5)).astype(int) # time steps of stimulus onsets
+    return trial_start_times, trial_end_times
+
+
+def compute_band_power(trial_eeg, fs=1200, bands=[[4, 7], [8, 12], [12.5, 30], [30, 60], [60, 100]]): 
+    num_channels = 32
+    fbp = np.zeros((len(bands), num_channels))
+    
+    # Compute the power spectral density for each channel
+    for ch in range(num_channels):
+        freqs, psd = welch(trial_eeg[ch,:], fs=fs, nperseg=1024, noverlap=512, scaling='spectrum')
+        
+        for idx, band in enumerate(bands):
+            mask = (freqs >= band[0]) & (freqs <= band[1])
+            fbp[idx, ch] = np.sum(psd[mask])
+    
+    # Normalize by time
+    duration = trial_eeg.shape[1] / fs
+    print(trial_eeg.shape, duration)
+    fbp /= duration
+    
+    return fbp

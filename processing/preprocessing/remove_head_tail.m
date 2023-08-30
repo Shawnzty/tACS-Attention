@@ -1,7 +1,6 @@
 clear;
 clc;
 
-% i = 18; j = 2;
 % least and most steps
 fix_least = 1400;
 fix_most = 1800;

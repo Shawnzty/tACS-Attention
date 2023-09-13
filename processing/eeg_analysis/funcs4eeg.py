@@ -499,11 +499,11 @@ def pipeline_FBP_allsubs(case):
 
 def onesub_FBP(subject_id, case_by_id, trials_before, trials_after):
     # laod eeg raw file
-    print(subject_id)
+    # print(subject_id)
     eeg_before, eeg_after = load_eeg(subject_id)
-    print('before...')
+    # print('before...')
     fbp_before = onesession_FBP(eeg_before, trials_before, case_by_id)
-    print('after...')
+    # print('after...')
     fbp_after = onesession_FBP(eeg_after, trials_after, case_by_id)
 
     return fbp_before, fbp_after
@@ -545,7 +545,33 @@ def compute_band_power(trial_eeg, fs=1200, bands=[[4, 7], [8, 12], [12.5, 30], [
     
     # Normalize by time
     duration = trial_eeg.shape[1] / fs
-    print(trial_eeg.shape, duration)
+    # print(trial_eeg.shape, duration)
+    fbp /= duration
+
+    baseline = baseline_fbp(trial_eeg)
+    fbp = fbp - baseline
+    
+    return fbp
+
+
+def baseline_fbp(trial_eeg, fs=1200, bands=[[4, 7], [8, 12], [12.5, 30], [30, 60], [60, 100]]):
+    fixation_dur = 1.5 # seconds
+    fixation_eeg = trial_eeg[:, :int(fs*fixation_dur)]
+
+    num_channels = 32
+    fbp = np.zeros((len(bands), num_channels))
+    
+    # Compute the power spectral density for each channel
+    for ch in range(num_channels):
+        freqs, psd = welch(fixation_eeg[ch,:], fs=fs, nperseg=1024, noverlap=512, scaling='spectrum')
+        
+        for idx, band in enumerate(bands):
+            mask = (freqs >= band[0]) & (freqs <= band[1])
+            fbp[idx, ch] = np.sum(psd[mask])
+    
+    # Normalize by time
+    duration = fixation_eeg.shape[1] / fs
+    # print(trial_eeg.shape, duration)
     fbp /= duration
     
     return fbp

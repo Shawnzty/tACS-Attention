@@ -23,11 +23,15 @@ eeg_overview is the program to plot the overview of the EEG data. (not used any 
 5. `check_filter`: check the data and see which filter is good.
 - `check_one_chan`: check the data of one channel.
 
-## `eeg_analysis` of eeg data
+## `prepare_raw_file`
 1. `mkRaw`: make raw data as MNE format.
+2. `manual_pick_ica`: manually pick ICAs to remove or keep, and save in ic_to_remove.csv
 2. `icaRepair`: repair the ICA components based on ic_to_remove
-3. `band_power`: compare band power of subjects
-4. 
+
+## `eeg_analysis` of eeg data
+1. `func4eeg`: functions for eeg analysis
+2. `ERP`: analysis of ERP, evoked response potential
+3. `FBP`: analysis of FBP, frequency band power
 
 - `eeg_overview`: show the overview of eeg data
 - `manual_pick_ica`: manually pick ICAs to remove or keep, and save in ic_to_remove.csv
@@ -39,7 +43,7 @@ eeg_overview is the program to plot the overview of the EEG data. (not used any 
 - `behavior`: basic analysis of behavior data
 - `func4behav`: functions for behavior analysis
 - `auto_significance`: automatic detection of significant comparison
-- `behavior_all_subs`: analysis of all subjects together
+- `behavior_all_subs`: analysis of all subjects together -> the one actually used
 - `distribution_all_subs`: distribution analysis of all subjects together
 - `distribution_by_subs`: distribution analysis of each subject
 - `each_sub`: analysis of each subject

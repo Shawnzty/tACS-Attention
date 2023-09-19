@@ -285,8 +285,10 @@ def reaction_time_table(case, verbose=False):
     return behav_sham_before, behav_sham_after, behav_real_before, behav_real_after, rt_means, rt_std_errors
 
 
-def onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after):
+def onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass, lopass):
     eeg_before, eeg_after = load_eeg(subject_id)
+    eeg_before.filter(l_freq=hipass, h_freq=lopass)
+    eeg_after.filter(l_freq=hipass, h_freq=lopass)
 
     events, event_dict = make_default_events(eeg_before)
     picked_events, picked_events_dict = make_custom_events(eeg_before, events, event_dict, trials_before, case_by_id)
@@ -307,7 +309,7 @@ def get_inuse_trials(subject_id, before, after):
     return trials_before, trials_after
 
 
-def pipeline_evoked_response_allsubs(case, watch, tmin, tmax):
+def pipeline_evoked_response_allsubs(case, watch, tmin, tmax, hipass=0.3, lopass=30):
     real_ids = [1, 3, 4, 5, 9, 12, 13, 17, 18]
     sham_ids = [2, 6, 7, 8, 10, 11, 14, 15, 16]
     sham_evoked_before = np.empty((0, 32, round((tmax-tmin)*1200+1)))
@@ -321,13 +323,13 @@ def pipeline_evoked_response_allsubs(case, watch, tmin, tmax):
 
     for subject_id in sham_ids:
         trials_before, trials_after = get_inuse_trials(subject_id, behav_sham_before, behav_sham_after)
-        evoked_before, evoked_after = onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after)
+        evoked_before, evoked_after = onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass, lopass)
         sham_evoked_before = np.concatenate((sham_evoked_before, evoked_before), axis=0)
         sham_evoked_after = np.concatenate((sham_evoked_after, evoked_after), axis=0)
     
     for subject_id in real_ids:
         trials_before, trials_after = get_inuse_trials(subject_id, behav_real_before, behav_real_after)
-        evoked_before, evoked_after = onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after)
+        evoked_before, evoked_after = onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass, lopass)
         real_evoked_before = np.concatenate((real_evoked_before, evoked_before), axis=0)
         real_evoked_after = np.concatenate((real_evoked_after, evoked_after), axis=0)
 
@@ -425,7 +427,7 @@ def pick_cortex(command):
     return channels
 
 
-def pipeline_ERP_bysubs(case, watch, tmin, tmax, hipass=50):
+def pipeline_ERP_bysubs(case, watch, tmin, tmax, hipass=0.3, lopass=30):
     real_ids = [1, 3, 4, 5, 9, 12, 13, 17, 18]
     sham_ids = [2, 6, 7, 8, 10, 11, 14, 15, 16]
     sham_evoked_before = []
@@ -439,24 +441,24 @@ def pipeline_ERP_bysubs(case, watch, tmin, tmax, hipass=50):
 
     for subject_id in sham_ids:
         trials_before, trials_after = get_inuse_trials(subject_id, behav_sham_before, behav_sham_after)
-        evoked_before, evoked_after = onesub_ERP_mne(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass)
+        evoked_before, evoked_after = onesub_ERP_mne(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass, lopass)
         sham_evoked_before.append(evoked_before)
         sham_evoked_after.append(evoked_after)
     
     for subject_id in real_ids:
         trials_before, trials_after = get_inuse_trials(subject_id, behav_real_before, behav_real_after)
-        evoked_before, evoked_after = onesub_ERP_mne(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass)
+        evoked_before, evoked_after = onesub_ERP_mne(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass, lopass)
         real_evoked_before.append(evoked_before)
         real_evoked_after.append(evoked_after)
 
     return sham_evoked_before, sham_evoked_after, real_evoked_before, real_evoked_after, rt_means, rt_std_errors
 
 
-def onesub_ERP_mne(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass=50):
+def onesub_ERP_mne(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass, lopass):
     # raw
     eeg_before, eeg_after = load_eeg(subject_id) # raw
-    eeg_before.filter(l_freq=None, h_freq=hipass)
-    eeg_after.filter(l_freq=None, h_freq=hipass)
+    eeg_before.filter(l_freq=hipass, h_freq=lopass)
+    eeg_after.filter(l_freq=hipass, h_freq=lopass)
 
     events, event_dict = make_default_events(eeg_before)
     picked_events, picked_events_dict = make_custom_events(eeg_before, events, event_dict, trials_before, case_by_id)
@@ -469,6 +471,34 @@ def onesub_ERP_mne(subject_id, case_by_id, watch, tmin, tmax, trials_before, tri
     evoked_after = epochs_after.average()
 
     return evoked_before, evoked_after
+
+
+def pipeline_EP_allsubs(case, watch, tmin, tmax, hipass=0.3, lopass=30):
+    real_ids = [1, 3, 4, 5, 9, 12, 13, 17, 18]
+    sham_ids = [2, 6, 7, 8, 10, 11, 14, 15, 16]
+    sham_evoked_before = []
+    sham_evoked_after = []
+    real_evoked_before = []
+    real_evoked_after = []
+
+    case_by_id = translate_case(case)
+
+    behav_sham_before, behav_sham_after, behav_real_before, behav_real_after, rt_means, rt_std_errors = reaction_time_table(case)
+
+    for subject_id in sham_ids:
+        trials_before, trials_after = get_inuse_trials(subject_id, behav_sham_before, behav_sham_after)
+        evoked_before, evoked_after = onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass, lopass)
+        sham_evoked_before.append(evoked_before)
+        sham_evoked_after.append(evoked_after)
+    
+    for subject_id in real_ids:
+        trials_before, trials_after = get_inuse_trials(subject_id, behav_real_before, behav_real_after)
+        evoked_before, evoked_after = onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass, lopass)
+        real_evoked_before.append(evoked_before)
+        real_evoked_after.append(evoked_after)
+
+    return sham_evoked_before, sham_evoked_after, real_evoked_before, real_evoked_after, rt_means, rt_std_errors
+
 
 
 def pipeline_FBP_allsubs(case):

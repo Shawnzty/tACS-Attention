@@ -2,6 +2,7 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath('..'))
 from scipy.io import loadmat
+from scipy.signal import find_peaks
 from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
@@ -499,6 +500,34 @@ def pipeline_EP_allsubs(case, watch, tmin, tmax, hipass=0.3, lopass=30):
 
     return sham_evoked_before, sham_evoked_after, real_evoked_before, real_evoked_after, rt_means, rt_std_errors
 
+
+def detect_EP(signal, time_vector, windows):
+    # Define time windows for each peak (based on typical latencies)
+    
+
+    peaks = np.empty((2, 3))
+    peak_order = ["N75", "P100", "N135"]  # Use this to ensure you're saving values in the right order
+
+    for idx, peak in enumerate(peak_order):
+        # Get indices for the current time window
+        indices = np.where((time_vector >= windows[peak][0]) & (time_vector <= windows[peak][1]))[0]
+
+        # Check if the current peak is negative or positive
+        if 'N' in peak:
+            peak_indices, _ = find_peaks(-signal[indices])  # We invert the signal for negative peaks
+        else:
+            peak_indices, _ = find_peaks(signal[indices])
+
+        # If a peak is found within the window, save its time and amplitude
+        if len(peak_indices) > 0:
+            main_peak_idx = indices[peak_indices[np.argmax(signal[indices][peak_indices])]]
+            peaks[0, idx] = time_vector[main_peak_idx]
+            peaks[1, idx] = signal[main_peak_idx]
+        else:
+            peaks[0, idx] = np.nan
+            peaks[1, idx] = np.nan
+
+    return peaks
 
 
 def pipeline_FBP_allsubs(case):

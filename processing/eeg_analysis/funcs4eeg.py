@@ -506,7 +506,7 @@ def detect_EP(signal, time_vector, windows):
     
 
     peaks = np.empty((2, 3))
-    peak_order = ["N75", "P100", "N135"]  # Use this to ensure you're saving values in the right order
+    peak_order = ["N75", "P100", "N145"]  # Use this to ensure you're saving values in the right order
 
     for idx, peak in enumerate(peak_order):
         # Get indices for the current time window

@@ -502,9 +502,6 @@ def pipeline_EP_allsubs(case, watch, tmin, tmax, hipass=0.3, lopass=30):
 
 
 def detect_EP(signal, time_vector, windows):
-    # Define time windows for each peak (based on typical latencies)
-    
-
     peaks = np.empty((2, 3))
     peak_order = ["N75", "P100", "N145"]  # Use this to ensure you're saving values in the right order
 
@@ -513,14 +510,18 @@ def detect_EP(signal, time_vector, windows):
         indices = np.where((time_vector >= windows[peak][0]) & (time_vector <= windows[peak][1]))[0]
 
         # Check if the current peak is negative or positive
-        if 'N' in peak:
-            peak_indices, _ = find_peaks(-signal[indices])  # We invert the signal for negative peaks
-        else:
+        if 'N' in peak:  # For negative peaks
+            peak_indices, _ = find_peaks(-signal[indices])         
+        else:  # For positive peaks
             peak_indices, _ = find_peaks(signal[indices])
-
+            
         # If a peak is found within the window, save its time and amplitude
         if len(peak_indices) > 0:
-            main_peak_idx = indices[peak_indices[np.argmax(signal[indices][peak_indices])]]
+            if 'N' in peak:
+                main_peak_idx = indices[peak_indices[np.argmin(signal[indices][peak_indices])]]
+            else:
+                main_peak_idx = indices[peak_indices[np.argmax(signal[indices][peak_indices])]]
+
             peaks[0, idx] = time_vector[main_peak_idx]
             peaks[1, idx] = signal[main_peak_idx]
         else:
@@ -528,6 +529,35 @@ def detect_EP(signal, time_vector, windows):
             peaks[1, idx] = np.nan
 
     return peaks
+
+
+def rm_outlier(data, k=1.5):
+    """
+    Remove outliers from a 1D array or list based on the IQR method.
+    """
+    q1 = np.percentile(data, 25)
+    q3 = np.percentile(data, 75)
+    iqr = q3 - q1
+    lower_bound = q1 - k * iqr
+    upper_bound = q3 + k * iqr
+    return [x for x in data if lower_bound <= x <= upper_bound]
+
+
+def compute_onechannel_EP(alltrials_EP, k=1.5):
+    # Assuming alltrials_EP is a list of (2,3) ndarrays
+    data_by_position = np.array(alltrials_EP)  # Convert to ndarray of shape (len(alltrials_EP), 2, 3)
+    
+    onechannel_EP = np.empty((2,3))
+    for i in range(2):
+        for j in range(3):
+            # Extract values for the specific position (i, j)
+            position_values = data_by_position[:, i, j]
+            # Remove outliers
+            position_values_clean = rm_outlier(position_values, k=k)
+            # Compute mean
+            onechannel_EP[i, j] = np.mean(position_values_clean)
+    
+    return onechannel_EP
 
 
 def pipeline_FBP_allsubs(case):

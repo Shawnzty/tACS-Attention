@@ -531,33 +531,19 @@ def detect_EP(signal, time_vector, windows):
     return peaks
 
 
-def rm_outlier(data, k=1.5):
+def rm_outlier(data, left_k=1.5, right_k=1.5, verbose=False):
     """
     Remove outliers from a 1D array or list based on the IQR method.
     """
     q1 = np.percentile(data, 25)
     q3 = np.percentile(data, 75)
     iqr = q3 - q1
-    lower_bound = q1 - k * iqr
-    upper_bound = q3 + k * iqr
-    return [x for x in data if lower_bound <= x <= upper_bound]
-
-
-def compute_onechannel_EP(alltrials_EP, k=1.5):
-    # Assuming alltrials_EP is a list of (2,3) ndarrays
-    data_by_position = np.array(alltrials_EP)  # Convert to ndarray of shape (len(alltrials_EP), 2, 3)
-    
-    onechannel_EP = np.empty((2,3))
-    for i in range(2):
-        for j in range(3):
-            # Extract values for the specific position (i, j)
-            position_values = data_by_position[:, i, j]
-            # Remove outliers
-            position_values_clean = rm_outlier(position_values, k=k)
-            # Compute mean
-            onechannel_EP[i, j] = np.mean(position_values_clean)
-    
-    return onechannel_EP
+    lower_bound = q1 - left_k * iqr
+    upper_bound = q3 + right_k * iqr
+    cleaned_data = [x for x in data if lower_bound <= x <= upper_bound]
+    if verbose:
+        print(f"Removed {len(data) - len(cleaned_data)} outliers from the data.")
+    return cleaned_data
 
 
 def pipeline_FBP_allsubs(case):

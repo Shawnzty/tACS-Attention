@@ -409,17 +409,44 @@ def makeup_subject(eeg_data, tmin, tmax):
 
     return epochs.average()
 
-
 def pick_cortex(command):
     channels = {}
-    if 'frontal' in command:
-        channels.update({'Fp1':1, 'Fp2':2, 'AF3':3, 'AF4':4, 'F7':5, 'F3':6, 'Fz':7, 'F4':8, 'F8':9, 'FC1':10, 'FC2':11}) # 11
-    if 'parietal' in command:
-        channels.update({'C3':13, 'Cz':14, 'C4':15, 'CP5':17, 'CP1':18, 'CP2':19, 'CP6':20, 'P5':22, 'P3':23, 'Pz':24, 'P4':25, 'P6':26}) # 12
-    if 'occipital' in command:
+
+    if 'left frontal' in command:
+        channels.update({'Fp1':1, 'AF3':3}) # 2
+    elif 'right frontal' in command:
+        channels.update({'Fp2':2, 'AF4':4}) # 2
+    elif 'left central' in command:
+        channels.update({'FC1':10, 'C3':13})
+    elif 'right central' in command:
+        channels.update({'FC2':11, 'C4':15})
+    elif 'left parietal' in command:
+        channels.update({'CP1':18, 'P5':22, 'P3':23})
+    elif 'right parietal' in command:
+        channels.update({'CP2':19, 'P4':25, 'P6':26})
+    elif 'left temporal' in command:
+        channels.update({'F7':5, 'F3':6, 'T7':12, 'CP5':17, 'P7':21})
+    elif 'right temporal' in command:
+        channels.update({'F4':8, 'F8':9, 'T8':16, 'CP6':20, 'P8':27})
+
+    elif 'frontal' in command:
+        channels.update({'Fp1':1, 'Fp2':2, 'AF3':3, 'AF4':4, 'Fz':7}) # 5
+    elif 'central' in command:
+        channels.update({'FC1':10, 'FC2':11, 'C3':13, 'Cz':14, 'C4':15}) # 5
+    elif 'parietal' in command:
+        channels.update({'CP1':18, 'CP2':19, 'P5':22, 'P3':23, 'Pz':24, 'P4':25, 'P6':26}) # 7
+    elif 'occipital' in command:
         channels.update({'PO3':28, 'PO4':29, 'O1':30, 'Oz':31, 'O2':32}) # 5
-    if 'temporal' in command:
-        channels.update({'T7':12, 'T8':16, 'P7':21, 'P8':27}) # 4
+    elif 'temporal' in command:
+        channels.update({'F7':5, 'F3':6, 'F4':8, 'F8':9, 'T7':12, 'T8':16, 'CP5':17, 'CP6':20, 'P7':21, 'P8':27}) # 10
+    
+    elif 'left' in command:
+        channels.update({'Fp1':1, 'AF3':3, 'F7':5, 'F3':6, 'FC1':10, 'T7':12, 'C3':13, 'CP1':18, 'CP5':17, 'P5':22, 'P3':23, 'Pz':24, 'PO3':28, 'O1':30}) # 14
+    elif 'right' in command:
+        channels.update({'Fp2':2, 'AF4':4, 'F4':8, 'F8':9, 'FC2':11, 'T8':16, 'C4':15, 'CP2':19, 'CP6':20, 'P4':25, 'P6':26, 'P8':27, 'PO4':29, 'O2':32}) # 14
+    elif 'all' in command:
+        channels.update({'Fp1':1, 'Fp2':2, 'AF3':3, 'AF4':4, 'F7':5, 'F3':6, 'Fz':7, 'F4':8, 'F8':9, 'FC1':10, 'FC2':11, 'T7':12, 'C3':13, 'Cz':14, 'C4':15, 'T8':16, 'CP1':18, 'CP2':19, 'CP5':17, 'CP6':20, 'P7':21, 'P5':22, 'P3':23, 'Pz':24, 'P4':25, 'P6':26, 'P8':27, 'PO3':28, 'PO4':29, 'O1':30, 'Oz':31, 'O2':32}) # 32
+    
     if 'anode' in command:
         channels.update({'P6':26})
     if 'cathode' in command:
@@ -531,15 +558,15 @@ def detect_EP(signal, time_vector, windows):
     return peaks
 
 
-def rm_outlier(data, left_k=1.5, right_k=1.5, verbose=False):
+def rm_outlier(data, lower_k=1.5, upper_k=1.5, verbose=False):
     """
     Remove outliers from a 1D array or list based on the IQR method.
     """
     q1 = np.percentile(data, 25)
     q3 = np.percentile(data, 75)
     iqr = q3 - q1
-    lower_bound = q1 - left_k * iqr
-    upper_bound = q3 + right_k * iqr
+    lower_bound = q1 - lower_k * iqr
+    upper_bound = q3 + upper_k * iqr
     cleaned_data = [x for x in data if lower_bound <= x <= upper_bound]
     if verbose:
         print(f"Removed {len(data) - len(cleaned_data)} outliers from the data.")

@@ -677,3 +677,76 @@ def baseline_fbp(trial_eeg, fs=1200, bands=[[4, 7], [8, 12], [12.5, 30], [30, 60
     fbp /= duration
     
     return fbp
+
+
+def pipeline_time_freq(data_list, tmin, tmax, lofreq=1, hifreq=100, freqdiv=1):
+    know_list = [[],[],[],[]]
+    # by channel, remove bad channels
+    bad_channels = [
+        [ # sham before
+            [], [], [], [], [], [], [22,21], [5,9], []
+        ],
+        [ # sham after
+            [], [], [], [], [], [], [], [], []
+        ],
+        [ # real before
+            [], [], [], [], [], [], [], [], []
+        ],
+        [ # real after
+            [], [], [], [], [], [7], [], [], []
+        ]
+    ]
+    # loops
+    for i, session_data in enumerate(data_list):
+        print(f'processing session {i}...')
+        for channel in range(1,33):
+            one_chan_list = []
+            for group_id in range(9):
+                if channel not in bad_channels[i][group_id]:
+                    for trial in range(session_data[group_id].shape[0]):
+                        one_trial = session_data[group_id][trial, channel-1, :]
+                        tfmap = one_trial_tfmap(one_trial, tmin, tmax, lofreq, hifreq, freqdiv, normalize=False)
+                        one_chan_list.append(tfmap)
+
+            one_chan = np.stack(one_chan_list, axis=0)
+            know_list[i].append(one_chan)
+    return know_list
+
+
+def morlet_wavelet(f, t, sigma=1):
+    """Generate a Morlet wavelet."""
+    sine_wave = np.exp(2j * np.pi * f * t)
+    gaussian_win = np.exp(-t ** 2 / (2 * sigma ** 2))
+    return sine_wave * gaussian_win
+
+
+def one_trial_tfmap(data, tmin, tmax, lofreq, hifreq, freqdiv, normalize=False):
+    # Time and frequency vectors
+    times = np.linspace(tmin, tmax, num=len(data))
+    freqs = np.arange(lofreq, hifreq, freqdiv)
+    
+    # Initialize TF map
+    tfmap = np.zeros((len(freqs), len(times)))
+
+    # Calculate TF representation for each frequency
+    for i_f, f in enumerate(freqs):
+        wavelet = morlet_wavelet(f, times)
+        conv_res = np.convolve(data, wavelet, mode='same')
+        power = np.abs(conv_res) ** 2
+        tfmap[i_f, :] = power
+
+    if normalize:
+        # Identify the baseline index for t=0
+        baseline_index = np.argmin(np.abs(times))
+
+        # Subtract the baseline value from each frequency row
+        for i_f in range(tfmap.shape[0]):
+            baseline_value = tfmap[i_f, baseline_index]
+            tfmap[i_f, :] -= baseline_value
+
+            # Normalize the data between (-1, 1)
+            max_val = np.max(np.abs(tfmap[i_f, :]))
+            if max_val != 0:  # to avoid dividing by zero
+                tfmap[i_f, :] /= max_val
+
+    return tfmap

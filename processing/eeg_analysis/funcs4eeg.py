@@ -412,39 +412,39 @@ def makeup_subject(eeg_data, tmin, tmax):
 def pick_cortex(command):
     channels = {}
 
-    if 'left frontal' in command:
+    if 'lf' in command:
         channels.update({'Fp1':1, 'AF3':3}) # 2
-    elif 'right frontal' in command:
+    if 'rf' in command:
         channels.update({'Fp2':2, 'AF4':4}) # 2
-    elif 'left central' in command:
+    if 'lc' in command:
         channels.update({'FC1':10, 'C3':13})
-    elif 'right central' in command:
+    if 'rc' in command:
         channels.update({'FC2':11, 'C4':15})
-    elif 'left parietal' in command:
+    if 'lp' in command:
         channels.update({'CP1':18, 'P5':22, 'P3':23})
-    elif 'right parietal' in command:
+    if 'rp' in command:
         channels.update({'CP2':19, 'P4':25, 'P6':26})
-    elif 'left temporal' in command:
+    if 'lt' in command:
         channels.update({'F7':5, 'F3':6, 'T7':12, 'CP5':17, 'P7':21})
-    elif 'right temporal' in command:
+    if 'rt' in command:
         channels.update({'F4':8, 'F8':9, 'T8':16, 'CP6':20, 'P8':27})
 
-    elif 'frontal' in command:
+    if 'frontal' in command:
         channels.update({'Fp1':1, 'Fp2':2, 'AF3':3, 'AF4':4, 'Fz':7}) # 5
-    elif 'central' in command:
+    if 'central' in command:
         channels.update({'FC1':10, 'FC2':11, 'C3':13, 'Cz':14, 'C4':15}) # 5
-    elif 'parietal' in command:
+    if 'parietal' in command:
         channels.update({'CP1':18, 'CP2':19, 'P5':22, 'P3':23, 'Pz':24, 'P4':25, 'P6':26}) # 7
-    elif 'occipital' in command:
+    if 'occipital' in command:
         channels.update({'PO3':28, 'PO4':29, 'O1':30, 'Oz':31, 'O2':32}) # 5
-    elif 'temporal' in command:
+    if 'temporal' in command:
         channels.update({'F7':5, 'F3':6, 'F4':8, 'F8':9, 'T7':12, 'T8':16, 'CP5':17, 'CP6':20, 'P7':21, 'P8':27}) # 10
     
-    elif 'left' in command:
+    if 'left' in command:
         channels.update({'Fp1':1, 'AF3':3, 'F7':5, 'F3':6, 'FC1':10, 'T7':12, 'C3':13, 'CP1':18, 'CP5':17, 'P5':22, 'P3':23, 'Pz':24, 'PO3':28, 'O1':30}) # 14
-    elif 'right' in command:
+    if 'right' in command:
         channels.update({'Fp2':2, 'AF4':4, 'F4':8, 'F8':9, 'FC2':11, 'T8':16, 'C4':15, 'CP2':19, 'CP6':20, 'P4':25, 'P6':26, 'P8':27, 'PO4':29, 'O2':32}) # 14
-    elif 'all' in command:
+    if 'all' in command:
         channels.update({'Fp1':1, 'Fp2':2, 'AF3':3, 'AF4':4, 'F7':5, 'F3':6, 'Fz':7, 'F4':8, 'F8':9, 'FC1':10, 'FC2':11, 'T7':12, 'C3':13, 'Cz':14, 'C4':15, 'T8':16, 'CP1':18, 'CP2':19, 'CP5':17, 'CP6':20, 'P7':21, 'P5':22, 'P3':23, 'Pz':24, 'P4':25, 'P6':26, 'P8':27, 'PO3':28, 'PO4':29, 'O1':30, 'Oz':31, 'O2':32}) # 32
     
     if 'anode' in command:
@@ -748,5 +748,37 @@ def one_trial_tfmap(data, tmin, tmax, lofreq, hifreq, freqdiv, normalize=False):
             max_val = np.max(np.abs(tfmap[i_f, :]))
             if max_val != 0:  # to avoid dividing by zero
                 tfmap[i_f, :] /= max_val
+
+    return tfmap
+
+
+def normalize_tfmap(tfmap, times, axis):
+    if axis == "freq":
+        # Identify the baseline index for t=0
+        baseline_index = np.argmin(np.abs(times))
+        
+        # Subtract the baseline value from each frequency row
+        for i_f in range(tfmap.shape[0]):
+            baseline_value = tfmap[i_f, baseline_index]
+            tfmap[i_f, :] -= baseline_value
+
+            # Normalize the data between (-1, 1)
+            max_val = np.max(np.abs(tfmap[i_f, :]))
+            if max_val != 0:  # to avoid dividing by zero
+                tfmap[i_f, :] /= max_val
+
+    elif axis == "time":
+        # Normalize each time column between (0, 1)
+        for i_t in range(tfmap.shape[1]):
+            min_val = tfmap[:, i_t].min()
+            max_val = tfmap[:, i_t].max()
+            
+            if max_val != min_val:  # to avoid dividing by zero and to handle cases where max and min are equal
+                tfmap[:, i_t] = (tfmap[:, i_t] - min_val) / (max_val - min_val)
+            else:
+                tfmap[:, i_t] = 0  # set column to 0 if max and min values are the same
+
+    else:
+        raise ValueError("Invalid axis value. Use either 'time' or 'freq'.")
 
     return tfmap

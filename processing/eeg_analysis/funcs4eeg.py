@@ -109,7 +109,7 @@ def make_custom_events(eeg, events, event_dict, behav_trials, case):
 def make_epochs(eeg, events, event_dict, watch, tmin, tmax):
     # for example: watch = '11 stim'
     epochs = mne.Epochs(eeg, events, event_id=event_dict[watch],
-                           tmin=tmin, tmax=tmax, baseline=(0,0), preload=True, verbose=False)
+                           tmin=tmin, tmax=tmax, baseline=None, preload=True, verbose=False)
     return epochs
 
 

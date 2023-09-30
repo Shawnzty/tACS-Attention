@@ -188,6 +188,21 @@ def remove_outlier(df, k=1.5, left=True, right=True, verbose=False):
     return filtered_df
 
 
+def rm_outlier(data, lower_k=1.5, upper_k=1.5, verbose=False):
+    """
+    Remove outliers from a 1D array or list based on the IQR method.
+    """
+    q1 = np.percentile(data, 25)
+    q3 = np.percentile(data, 75)
+    iqr = q3 - q1
+    lower_bound = q1 - lower_k * iqr
+    upper_bound = q3 + upper_k * iqr
+    cleaned_data = [x for x in data if lower_bound <= x <= upper_bound]
+    if verbose:
+        print(f"Removed {len(data) - len(cleaned_data)} outliers from the {len(data)} data.")
+    return cleaned_data
+
+
 def add_trial_num(subject_id):
     behavior_before_path = os.path.join('..', '..', '..', 'data', str(subject_id), 'behavior_before.csv')
     behavior_before = pd.read_csv(behavior_before_path)

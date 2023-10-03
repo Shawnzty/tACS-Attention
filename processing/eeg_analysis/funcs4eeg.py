@@ -782,3 +782,89 @@ def normalize_tfmap(tfmap, times, axis):
         raise ValueError("Invalid axis value. Use either 'time' or 'freq'.")
 
     return tfmap
+
+
+def pipeline_EP_RT(case, watch, tmin, tmax, hipass, lopass):
+    real_ids = [1, 3, 4, 5, 9, 12, 13, 17, 18]
+    sham_ids = [2, 6, 7, 8, 10, 11, 14, 15, 16]
+
+    sham_evoked_before = []
+    sham_RT_before = []
+    sham_evoked_after = []
+    sham_RT_after = []
+    real_evoked_before = []
+    real_RT_before = []
+    real_evoked_after = []
+    real_RT_after = []
+
+    case_by_id = translate_case(case)
+
+    behav_sham_before, behav_sham_after, behav_real_before, behav_real_after, _, _ = reaction_time_table(case)
+
+    for subject_id in sham_ids:
+        trials_before, trials_after = get_inuse_trials(subject_id, behav_sham_before, behav_sham_after)
+        evoked_before, evoked_after = onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass, lopass)
+        RT_before = behav_sham_before.loc[behav_sham_before['subject id'] == subject_id, 'reaction time'].to_numpy()
+        RT_after = behav_sham_after.loc[behav_sham_after['subject id'] == subject_id, 'reaction time'].to_numpy()
+        sham_evoked_before.append(evoked_before)
+        sham_evoked_after.append(evoked_after)
+
+        if RT_before.shape[0]>evoked_before.shape[0]:
+            RT_before = RT_before[:evoked_before.shape[0]]
+        if RT_after.shape[0]>evoked_after.shape[0]:
+            RT_after = RT_after[:evoked_after.shape[0]]
+        sham_RT_before.append(RT_before)
+        sham_RT_after.append(RT_after)
+    
+    for subject_id in real_ids:
+        trials_before, trials_after = get_inuse_trials(subject_id, behav_real_before, behav_real_after)
+        evoked_before, evoked_after = onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass, lopass)
+        RT_before = behav_real_before.loc[behav_real_before['subject id'] == subject_id, 'reaction time'].to_numpy()
+        RT_after = behav_real_after.loc[behav_real_after['subject id'] == subject_id, 'reaction time'].to_numpy()
+        real_evoked_before.append(evoked_before)
+        real_evoked_after.append(evoked_after)
+
+        if RT_before.shape[0]>evoked_before.shape[0]:
+            RT_before = RT_before[:evoked_before.shape[0]]
+        if RT_after.shape[0]>evoked_after.shape[0]:
+            RT_after = RT_after[:evoked_after.shape[0]]
+        real_RT_before.append(RT_before)
+        real_RT_after.append(RT_after)
+
+    # remove bad channels
+    EP_lists = [sham_evoked_before, sham_evoked_after, real_evoked_before, real_evoked_after]
+    RT_lists = [sham_RT_before, sham_RT_after, real_RT_before, real_RT_after]
+    EP_bychan_lists = [[],[],[],[]]
+    RT_bychan_lists = [[],[],[],[]]
+    # choose channels
+    bad_channels = [
+            [ # sham before
+                [], [], [], [], [], [], [22,21], [5,9], []
+            ],
+            [ # sham after
+                [], [], [], [], [], [], [], [], []
+            ],
+            [ # real before
+                [], [], [], [], [], [], [], [], []
+            ],
+            [ # real after
+                [], [], [], [], [], [7], [], [], []
+            ]
+    ]
+
+    for i, session_data in enumerate(EP_lists):
+        for channel in range(1, 33):
+            one_chan_list = []
+            one_chan_RT_list = []
+            for group_id in range(9):
+                if channel not in bad_channels[i][group_id]:
+                    one_sub_trials = session_data[group_id][:, channel-1, :]
+                    one_chan_list.append(one_sub_trials)
+                    one_chan_RT_list.append(RT_lists[i][group_id])
+            
+            one_chan = np.concatenate(one_chan_list, axis=0)
+            one_chan_RT = np.concatenate(one_chan_RT_list, axis=0)
+            EP_bychan_lists[i].append(one_chan)
+            RT_bychan_lists[i].append(one_chan_RT)
+
+    return EP_bychan_lists[0], RT_bychan_lists[0], EP_bychan_lists[1], RT_bychan_lists[1], EP_bychan_lists[2], RT_bychan_lists[2], EP_bychan_lists[3], RT_bychan_lists[3]

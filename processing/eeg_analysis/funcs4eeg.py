@@ -897,7 +897,7 @@ def extract_channels_EP_RT(sb_EP, sa_EP, rb_EP, ra_EP, pick_channels):
             averaged_trial = np.empty((one_trial.shape[1]))
             for time_step in range (one_trial.shape[1]):
                 cleaned = rm_outlier(one_trial[:,time_step], lower_k=1.5, upper_k=1.5, verbose=False)
-                averaged_trial[time_step] = np.mean(cleaned)
+                averaged_trial[time_step] = np.mean(cleaned) # nanmean() ????
             session_extract[trial] = averaged_trial
         extract[i] = session_extract
     return extract[0], extract[1], extract[2], extract[3]

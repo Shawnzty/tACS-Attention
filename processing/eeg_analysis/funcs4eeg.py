@@ -831,8 +831,16 @@ def pipeline_EP_RT(case, watch, tmin, tmax, hipass, lopass):
         real_RT_before.append(RT_before)
         real_RT_after.append(RT_after)
 
+    # move the baseline to mean of [tmin, 0]
+    EP_lists = [[],[],[],[]]
+    for i, session_data in enumerate([sham_evoked_before, sham_evoked_after, real_evoked_before, real_evoked_after]):
+        for sub_data in session_data:
+            for trial in range(sub_data.shape[0]):
+                for channel in range (sub_data.shape[1]):
+                    sub_data[trial, channel, :] = sub_data[trial, channel, :] - np.mean(sub_data[trial, channel, :int(abs(tmin)*1200)])
+            EP_lists[i].append(sub_data)
+
     # remove bad channels
-    EP_lists = [sham_evoked_before, sham_evoked_after, real_evoked_before, real_evoked_after]
     RT_lists = [sham_RT_before, sham_RT_after, real_RT_before, real_RT_after]
     EP_bychan_lists = [[],[],[],[]]
     RT_bychan_lists = [[],[],[],[]]
@@ -853,18 +861,43 @@ def pipeline_EP_RT(case, watch, tmin, tmax, hipass, lopass):
     ]
 
     for i, session_data in enumerate(EP_lists):
-        for channel in range(1, 33):
-            one_chan_list = []
-            one_chan_RT_list = []
-            for group_id in range(9):
-                if channel not in bad_channels[i][group_id]:
-                    one_sub_trials = session_data[group_id][:, channel-1, :]
-                    one_chan_list.append(one_sub_trials)
-                    one_chan_RT_list.append(RT_lists[i][group_id])
+        one_group_list = []
+        one_group_RT_list = []
+
+        for group_id in range(9):
+            sub_EP = session_data[group_id]
+
+            if bad_channels[i][group_id] != []:
+                # print(i, group_id, bad_channels[i][group_id])
+                rm_indices = [x - 1 for x in bad_channels[i][group_id]]
+                # print(rm_indices)
+                sub_EP[:, rm_indices, :] = np.nan
             
-            one_chan = np.concatenate(one_chan_list, axis=0)
-            one_chan_RT = np.concatenate(one_chan_RT_list, axis=0)
-            EP_bychan_lists[i].append(one_chan)
-            RT_bychan_lists[i].append(one_chan_RT)
+            one_group_list.append(sub_EP)
+            one_group_RT_list.append(RT_lists[i][group_id])
+            
+        one_group = np.concatenate(one_group_list, axis=0)
+        one_group_RT = np.concatenate(one_group_RT_list, axis=0)
+        EP_bychan_lists[i] = one_group
+        RT_bychan_lists[i] = one_group_RT
+
 
     return EP_bychan_lists[0], RT_bychan_lists[0], EP_bychan_lists[1], RT_bychan_lists[1], EP_bychan_lists[2], RT_bychan_lists[2], EP_bychan_lists[3], RT_bychan_lists[3]
+
+
+def extract_channels_EP_RT(sb_EP, sa_EP, rb_EP, ra_EP, pick_channels):
+    pick_channels = [x - 1 for x in pick_channels]
+    sb, sa, rb, ra = sb_EP[:, pick_channels, :], sa_EP[:, pick_channels, :], rb_EP[:, pick_channels, :], ra_EP[:, pick_channels, :]
+    extract = [[],[],[],[]]
+    for i, session in enumerate([sb, sa, rb, ra]):
+        session_extract = np.empty((session.shape[0], session.shape[2]))
+        for trial in range (session.shape[0]):
+            one_trial = session[trial,:,:]
+            one_trial = one_trial[~np.isnan(one_trial).any(axis=1)] # remove nan channels
+            averaged_trial = np.empty((one_trial.shape[1]))
+            for time_step in range (one_trial.shape[1]):
+                cleaned = rm_outlier(one_trial[:,time_step], lower_k=1.5, upper_k=1.5, verbose=False)
+                averaged_trial[time_step] = np.mean(cleaned)
+            session_extract[trial] = averaged_trial
+        extract[i] = session_extract
+    return extract[0], extract[1], extract[2], extract[3]

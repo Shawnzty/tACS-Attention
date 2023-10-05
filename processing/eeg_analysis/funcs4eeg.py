@@ -882,12 +882,12 @@ def pipeline_EP_RT(case, watch, tmin, tmax, hipass, lopass):
         RT_bychan_lists[i] = one_group_RT
 
 
-    return EP_bychan_lists[0], RT_bychan_lists[0], EP_bychan_lists[1], RT_bychan_lists[1], EP_bychan_lists[2], RT_bychan_lists[2], EP_bychan_lists[3], RT_bychan_lists[3]
+    # return EP_bychan_lists[0], RT_bychan_lists[0], EP_bychan_lists[1], RT_bychan_lists[1], EP_bychan_lists[2], RT_bychan_lists[2], EP_bychan_lists[3], RT_bychan_lists[3]
+    return EP_bychan_lists, RT_bychan_lists
 
-
-def extract_channels_EP_RT(sb_EP, sa_EP, rb_EP, ra_EP, pick_channels):
+def extract_channels_EP_RT(EP_bychan_lists, pick_channels):
     pick_channels = [x - 1 for x in pick_channels]
-    sb, sa, rb, ra = sb_EP[:, pick_channels, :], sa_EP[:, pick_channels, :], rb_EP[:, pick_channels, :], ra_EP[:, pick_channels, :]
+    sb, sa, rb, ra = EP_bychan_lists[0][:, pick_channels, :], EP_bychan_lists[1][:, pick_channels, :], EP_bychan_lists[2][:, pick_channels, :], EP_bychan_lists[3][:, pick_channels, :]
     extract = [[],[],[],[]]
     for i, session in enumerate([sb, sa, rb, ra]):
         session_extract = np.empty((session.shape[0], session.shape[2]))
@@ -900,4 +900,4 @@ def extract_channels_EP_RT(sb_EP, sa_EP, rb_EP, ra_EP, pick_channels):
                 averaged_trial[time_step] = np.mean(cleaned) # nanmean() ????
             session_extract[trial] = averaged_trial
         extract[i] = session_extract
-    return extract[0], extract[1], extract[2], extract[3]
+    return extract

@@ -901,3 +901,41 @@ def extract_channels_EP_RT(EP_bychan_lists, pick_channels):
             session_extract[trial] = averaged_trial
         extract[i] = session_extract
     return extract
+
+
+def pipeline_csp_onecond(case, watch, tmin, tmax, hipass, lopass):
+    sham_before, sham_after, real_before, real_after, _, _ = pipeline_EP_allsubs(case, watch, tmin, tmax, hipass, lopass)
+
+    # move the baseline to mean of [tmin, 0]
+    data_list = [[],[],[],[]]
+    for i, session_data in enumerate([sham_before, sham_after, real_before, real_after]):
+        for sub_data in session_data:
+            for trial in range(sub_data.shape[0]):
+                for channel in range (sub_data.shape[1]):
+                    sub_data[trial, channel, :] = sub_data[trial, channel, :] - np.mean(sub_data[trial, channel, :int(abs(tmin)*1200)])
+            data_list[i].append(sub_data)
+
+    # remove bad channels
+    bad_channels = [
+            [ # sham before
+                [], [], [], [], [], [], [22,21], [5,9], []
+            ],
+            [ # sham after
+                [], [], [], [], [], [], [], [], []
+            ],
+            [ # real before
+                [], [], [], [], [], [], [], [], []
+            ],
+            [ # real after
+                [], [], [], [], [], [7], [], [], []
+            ]
+    ]
+    cleanEP_lists = [[],[],[],[]]
+    for i, session in enumerate ([sham_before, sham_after, real_before, real_after]):
+        one_session = []
+        for group_id in range(9):
+            if bad_channels[i][group_id] == []:
+                one_session.append(session[group_id])
+        cleanEP_lists[i] = np.concatenate(one_session, axis=0)
+
+    return cleanEP_lists

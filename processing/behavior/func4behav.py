@@ -13,6 +13,7 @@ from pyddm.models import DriftConstant, NoiseConstant, BoundConstant, OverlayNon
 from pyddm.functions import fit_adjust_model, display_model
 import pyddm.plot
 
+relative_path = os.path.join('..', '..', '..', '..', 'data')
 
 def create_compare():
     exp_path = os.path.join('..', '..', '..', 'data', 'experiment.csv')
@@ -27,7 +28,7 @@ def create_compare():
 
 
 def create_all_subs_together():
-    exp_path = os.path.join('..', '..', '..', 'data', 'experiment.csv')
+    exp_path = os.path.join(relative_path, 'experiment.csv')
     exp_info = pd.read_csv(exp_path)
     # display(exp_info)
 
@@ -40,14 +41,14 @@ def create_all_subs_together():
 
 def create_allsubs_compare():
     behavior_compare = pd.DataFrame(columns=['subject id', 'trial', 'Real stimulation', 'session', 'type', 'cue','valid','ICS','stim','response','reaction time'])
-    experiment = pd.read_csv(os.path.join('..', '..', '..', 'data', 'experiment.csv'))
+    experiment = pd.read_csv(os.path.join(relative_path, 'experiment.csv'))
     return behavior_compare, experiment
 
 
 def load_behavior(subject_id):
-    behavior_before_path = os.path.join('..', '..', '..', 'data', str(subject_id), 'behavior_before.csv')
+    behavior_before_path = os.path.join(relative_path, str(subject_id), 'behavior_before.csv')
     behavior_before = pd.read_csv(behavior_before_path)
-    behavior_after_path = os.path.join('..', '..', '..', 'data', str(subject_id), 'behavior_after.csv')
+    behavior_after_path = os.path.join(relative_path, str(subject_id), 'behavior_after.csv')
     behavior_after = pd.read_csv(behavior_after_path)
 
     return behavior_before, behavior_after

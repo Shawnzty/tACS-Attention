@@ -105,7 +105,6 @@ def make_custom_events(eeg, events, event_dict, behav_trials, case):
     return picked_events, picked_events_dict
 
 
-
 def make_epochs(eeg, events, event_dict, watch, baseline, tmin, tmax):
     # for example: watch = '11 stim'
     epochs = mne.Epochs(eeg, events, event_id=event_dict[watch],
@@ -240,7 +239,8 @@ def translate_case(case):
                     'invalid': '8', 'endo invalid': '(3 | 4) & 8', 'exo invalid': '(5 | 6) & 8',
                     'cue left': '3 | 5', 'endo cue left': '3', 'exo cue left': '5', 'cue right': '4 | 6', 'endo cue right': '4', 'exo cue right': '6',
                     'stim left': '12', 'endo stim left': '(3 | 4) & 12', 'exo stim left': '(5 | 6) & 12',
-                    'stim right': '13', 'endo stim right': '(3 | 4) & 13', 'exo stim right': '(5 | 6) & 13'}
+                    'stim right': '13', 'endo stim right': '(3 | 4) & 13', 'exo stim right': '(5 | 6) & 13',
+                    'endo fast': '(3 | 4) & 9', 'exo fast': '(5 | 6) & 9', 'endo slow': '(3 | 4) & 10', 'exo slow': '(5 | 6) & 10'}
     case_by_id = case_id_dict[case]
     return case_by_id
 
@@ -286,10 +286,11 @@ def reaction_time_table(case, verbose=False):
     return behav_sham_before, behav_sham_after, behav_real_before, behav_real_after, rt_means, rt_std_errors
 
 
-def onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass, lopass, baseline_set):
+def onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass=None, lopass=None, baseline_set=None):
     eeg_before, eeg_after = load_eeg(subject_id)
-    eeg_before.filter(l_freq=hipass, h_freq=lopass)
-    eeg_after.filter(l_freq=hipass, h_freq=lopass)
+    if hipass is not None and lopass is not None:
+        eeg_before.filter(l_freq=hipass, h_freq=lopass)
+        eeg_after.filter(l_freq=hipass, h_freq=lopass)
 
     events, event_dict = make_default_events(eeg_before)
     picked_events, picked_events_dict = make_custom_events(eeg_before, events, event_dict, trials_before, case_by_id)
@@ -784,7 +785,7 @@ def normalize_tfmap(tfmap, times, axis):
     return tfmap
 
 
-def pipeline_EP_RT(case, watch, tmin, tmax, hipass, lopass):
+def pipeline_EP_RT(case, watch, tmin, tmax, hipass=None, lopass=None, baseline=None, move_baseline=True):
     real_ids = [1, 3, 4, 5, 9, 12, 13, 17, 18]
     sham_ids = [2, 6, 7, 8, 10, 11, 14, 15, 16]
 
@@ -803,7 +804,7 @@ def pipeline_EP_RT(case, watch, tmin, tmax, hipass, lopass):
 
     for subject_id in sham_ids:
         trials_before, trials_after = get_inuse_trials(subject_id, behav_sham_before, behav_sham_after)
-        evoked_before, evoked_after = onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass, lopass)
+        evoked_before, evoked_after = onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass, lopass, baseline)
         RT_before = behav_sham_before.loc[behav_sham_before['subject id'] == subject_id, 'reaction time'].to_numpy()
         RT_after = behav_sham_after.loc[behav_sham_after['subject id'] == subject_id, 'reaction time'].to_numpy()
         sham_evoked_before.append(evoked_before)
@@ -818,7 +819,7 @@ def pipeline_EP_RT(case, watch, tmin, tmax, hipass, lopass):
     
     for subject_id in real_ids:
         trials_before, trials_after = get_inuse_trials(subject_id, behav_real_before, behav_real_after)
-        evoked_before, evoked_after = onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass, lopass)
+        evoked_before, evoked_after = onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass, lopass, baseline)
         RT_before = behav_real_before.loc[behav_real_before['subject id'] == subject_id, 'reaction time'].to_numpy()
         RT_after = behav_real_after.loc[behav_real_after['subject id'] == subject_id, 'reaction time'].to_numpy()
         real_evoked_before.append(evoked_before)
@@ -831,14 +832,15 @@ def pipeline_EP_RT(case, watch, tmin, tmax, hipass, lopass):
         real_RT_before.append(RT_before)
         real_RT_after.append(RT_after)
 
+    EP_lists = [sham_evoked_before, sham_evoked_after, real_evoked_before, real_evoked_after]
     # move the baseline to mean of [tmin, 0]
-    EP_lists = [[],[],[],[]]
-    for i, session_data in enumerate([sham_evoked_before, sham_evoked_after, real_evoked_before, real_evoked_after]):
-        for sub_data in session_data:
-            for trial in range(sub_data.shape[0]):
-                for channel in range (sub_data.shape[1]):
-                    sub_data[trial, channel, :] = sub_data[trial, channel, :] - np.mean(sub_data[trial, channel, :int(abs(tmin)*1200)])
-            EP_lists[i].append(sub_data)
+    if move_baseline:
+        for i, session_data in enumerate(EP_lists):
+            for sub_data in session_data:
+                for trial in range(sub_data.shape[0]):
+                    for channel in range (sub_data.shape[1]):
+                        sub_data[trial, channel, :] = sub_data[trial, channel, :] - np.mean(sub_data[trial, channel, :int(abs(tmin)*1200)])
+                EP_lists[i].append(sub_data)
 
     # remove bad channels
     RT_lists = [sham_RT_before, sham_RT_after, real_RT_before, real_RT_after]
@@ -867,14 +869,11 @@ def pipeline_EP_RT(case, watch, tmin, tmax, hipass, lopass):
         for group_id in range(9):
             sub_EP = session_data[group_id]
 
-            if bad_channels[i][group_id] != []:
-                # print(i, group_id, bad_channels[i][group_id])
-                rm_indices = [x - 1 for x in bad_channels[i][group_id]]
-                # print(rm_indices)
-                sub_EP[:, rm_indices, :] = np.nan
-            
-            one_group_list.append(sub_EP)
-            one_group_RT_list.append(RT_lists[i][group_id])
+            if bad_channels[i][group_id] == []:
+                # rm_indices = [x - 1 for x in bad_channels[i][group_id]]
+                # sub_EP[:, rm_indices, :] = np.nan
+                one_group_list.append(sub_EP)
+                one_group_RT_list.append(RT_lists[i][group_id])
             
         one_group = np.concatenate(one_group_list, axis=0)
         one_group_RT = np.concatenate(one_group_RT_list, axis=0)
@@ -882,7 +881,6 @@ def pipeline_EP_RT(case, watch, tmin, tmax, hipass, lopass):
         RT_bychan_lists[i] = one_group_RT
 
 
-    # return EP_bychan_lists[0], RT_bychan_lists[0], EP_bychan_lists[1], RT_bychan_lists[1], EP_bychan_lists[2], RT_bychan_lists[2], EP_bychan_lists[3], RT_bychan_lists[3]
     return EP_bychan_lists, RT_bychan_lists
 
 def extract_channels_EP_RT(EP_bychan_lists, pick_channels):

@@ -288,9 +288,10 @@ def reaction_time_table(case, verbose=False):
 
 def onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass=None, lopass=None, baseline_set=None):
     eeg_before, eeg_after = load_eeg(subject_id)
-    if hipass is not None and lopass is not None:
-        eeg_before.filter(l_freq=hipass, h_freq=lopass)
-        eeg_after.filter(l_freq=hipass, h_freq=lopass)
+    if hipass is not None:
+        eeg_before.filter(l_freq=hipass, h_freq=None)
+    if lopass is not None:
+        eeg_after.filter(l_freq=None, h_freq=lopass)
 
     events, event_dict = make_default_events(eeg_before)
     picked_events, picked_events_dict = make_custom_events(eeg_before, events, event_dict, trials_before, case_by_id)
@@ -901,17 +902,20 @@ def extract_channels_EP_RT(EP_bychan_lists, pick_channels):
     return extract
 
 
-def pipeline_csp_onecond(case, watch, tmin, tmax, hipass, lopass):
-    sham_before, sham_after, real_before, real_after, _, _ = pipeline_EP_allsubs(case, watch, tmin, tmax, hipass, lopass)
+def pipeline_csp_onecond(case, watch, tmin, tmax, hipass, lopass, baseline=None, mean_baseline=True):
+    sham_before, sham_after, real_before, real_after, _, _ = pipeline_EP_allsubs(case, watch, tmin, tmax, hipass, lopass, baseline=None)
 
     # move the baseline to mean of [tmin, 0]
-    data_list = [[],[],[],[]]
-    for i, session_data in enumerate([sham_before, sham_after, real_before, real_after]):
-        for sub_data in session_data:
-            for trial in range(sub_data.shape[0]):
-                for channel in range (sub_data.shape[1]):
-                    sub_data[trial, channel, :] = sub_data[trial, channel, :] - np.mean(sub_data[trial, channel, :int(abs(tmin)*1200)])
-            data_list[i].append(sub_data)
+    if mean_baseline:
+        data_list = [[],[],[],[]]
+        for i, session_data in enumerate([sham_before, sham_after, real_before, real_after]):
+            for sub_data in session_data:
+                for trial in range(sub_data.shape[0]):
+                    for channel in range (sub_data.shape[1]):
+                        sub_data[trial, channel, :] = sub_data[trial, channel, :] - np.mean(sub_data[trial, channel, :int(abs(tmin)*1200)])
+                data_list[i].append(sub_data[:,:,int(abs(tmin)*1200):]) # only use t>0 for CSP
+    else:
+        data_list = [sham_before, sham_after, real_before, real_after]
 
     # remove bad channels
     bad_channels = [
@@ -929,7 +933,7 @@ def pipeline_csp_onecond(case, watch, tmin, tmax, hipass, lopass):
             ]
     ]
     cleanEP_lists = [[],[],[],[]]
-    for i, session in enumerate ([sham_before, sham_after, real_before, real_after]):
+    for i, session in enumerate (data_list):
         one_session = []
         for group_id in range(9):
             if bad_channels[i][group_id] == []:

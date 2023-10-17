@@ -88,6 +88,7 @@ def mkraw(subject_id, before_or_after):
     raw.info['subject_info'] = {'id': subject_id}
     raw.info['experimenter'] = before_or_after
     raw.filter(l_freq=0.1, h_freq=100)
+    
     # notch filter q=50, notch_widths = freq/q
     raw.notch_filter(50, notch_widths=1)
     raw.notch_filter(100, notch_widths=2)

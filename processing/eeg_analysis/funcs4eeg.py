@@ -263,7 +263,7 @@ def reaction_time_table(case, verbose=False):
     rt_real_after = behavior_after.loc[behavior_compare['Real stimulation'] == 1]
 
     # remove outliers
-    k_out = [1, 0.9, 1, 0.9]
+    k_out = [1, 1, 1, 1]
     behav_sham_before = fb.remove_outlier(rt_sham_before, k=k_out[0], left=False, right=True, verbose=verbose)
     behav_sham_after = fb.remove_outlier(rt_sham_after, k=k_out[1], left=True, right=False, verbose=verbose)
     behav_real_before = fb.remove_outlier(rt_real_before, k=k_out[2], left=True, right=False, verbose=verbose)

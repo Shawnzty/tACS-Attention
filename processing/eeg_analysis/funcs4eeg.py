@@ -339,7 +339,7 @@ def pipeline_evoked_response_allsubs(case, watch, tmin, tmax, hipass=0.3, lopass
     return sham_evoked_before, sham_evoked_after, real_evoked_before, real_evoked_after, rt_means, rt_std_errors
 
 
-def makeup_subject(eeg_data, tmin, tmax):
+def makeup_subject(eeg_data, tmin, tmax, baseline=(0,0)):
     # get placement data of standard 10-20 system
     montage_1020 = mne.channels.make_standard_montage('standard_1020')
     positions_1020 = montage_1020._get_ch_pos()
@@ -407,9 +407,10 @@ def makeup_subject(eeg_data, tmin, tmax):
     # events
     events = mne.find_events(raw, stim_channel="stim")
     event_dict = {"stim": 1}
-    epochs = mne.Epochs(raw, events, event_id=event_dict, tmin=tmin, tmax=tmax, baseline=(0, 0), preload=True, verbose=False)
+    epochs = mne.Epochs(raw, events, event_id=event_dict, tmin=tmin, tmax=tmax, baseline=baseline, preload=True, verbose=False, detrend=1)
 
     return epochs.average()
+
 
 def pick_cortex(command):
     channels = {}

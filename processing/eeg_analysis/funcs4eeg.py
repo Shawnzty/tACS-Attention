@@ -108,7 +108,7 @@ def make_custom_events(eeg, events, event_dict, behav_trials, case):
 def make_epochs(eeg, events, event_dict, watch, baseline, tmin, tmax):
     # for example: watch = '11 stim'
     epochs = mne.Epochs(eeg, events, event_id=event_dict[watch],
-                           tmin=tmin, tmax=tmax, baseline=baseline, preload=True, verbose=False)
+                           tmin=tmin, tmax=tmax, baseline=baseline, preload=True, verbose=False, detrend=1) ## detrend!!
     return epochs
 
 
@@ -407,7 +407,7 @@ def makeup_subject(eeg_data, tmin, tmax, baseline=(0,0)):
     # events
     events = mne.find_events(raw, stim_channel="stim")
     event_dict = {"stim": 1}
-    epochs = mne.Epochs(raw, events, event_id=event_dict, tmin=tmin, tmax=tmax, baseline=baseline, preload=True, verbose=False, detrend=1)
+    epochs = mne.Epochs(raw, events, event_id=event_dict, tmin=tmin, tmax=tmax, baseline=baseline, preload=True, verbose=False, detrend=0) # detrend!!
 
     return epochs.average()
 

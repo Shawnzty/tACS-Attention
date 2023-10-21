@@ -105,10 +105,10 @@ def make_custom_events(eeg, events, event_dict, behav_trials, case):
     return picked_events, picked_events_dict
 
 
-def make_epochs(eeg, events, event_dict, watch, baseline, tmin, tmax):
+def make_epochs(eeg, events, event_dict, watch, baseline, tmin, tmax, detrend):
     # for example: watch = '11 stim'
     epochs = mne.Epochs(eeg, events, event_id=event_dict[watch],
-                           tmin=tmin, tmax=tmax, baseline=baseline, preload=True, verbose=False, detrend=1) ## detrend!!
+                           tmin=tmin, tmax=tmax, baseline=baseline, preload=True, verbose=False, detrend=detrend) ## detrend!!
     return epochs
 
 
@@ -286,7 +286,7 @@ def reaction_time_table(case, verbose=False):
     return behav_sham_before, behav_sham_after, behav_real_before, behav_real_after, rt_means, rt_std_errors
 
 
-def onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass=None, lopass=None, baseline_set=None):
+def onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass=None, lopass=None, baseline_set=None, detrend=0):
     eeg_before, eeg_after = load_eeg(subject_id)
     if hipass is not None:
         eeg_before.filter(l_freq=hipass, h_freq=None)
@@ -295,12 +295,12 @@ def onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_bef
 
     events, event_dict = make_default_events(eeg_before)
     picked_events, picked_events_dict = make_custom_events(eeg_before, events, event_dict, trials_before, case_by_id)
-    epochs_before = make_epochs(eeg_before, picked_events, picked_events_dict, watch, baseline_set, tmin=tmin, tmax=tmax)
+    epochs_before = make_epochs(eeg_before, picked_events, picked_events_dict, watch, baseline_set, tmin=tmin, tmax=tmax, detrend=detrend)
     evoked_before = get_evoked_response(epochs_before)
 
     events, event_dict = make_default_events(eeg_after)
     picked_events, picked_events_dict = make_custom_events(eeg_after, events, event_dict, trials_after, case_by_id)
-    epochs_after = make_epochs(eeg_after, picked_events, picked_events_dict, watch, baseline_set, tmin=tmin, tmax=tmax)
+    epochs_after = make_epochs(eeg_after, picked_events, picked_events_dict, watch, baseline_set, tmin=tmin, tmax=tmax, detrend=detrend)
     evoked_after = get_evoked_response(epochs_after)
 
     return evoked_before, evoked_after
@@ -504,7 +504,7 @@ def onesub_ERP_mne(subject_id, case_by_id, watch, tmin, tmax, trials_before, tri
     return evoked_before, evoked_after
 
 
-def pipeline_EP_allsubs(case, watch, tmin, tmax, hipass=0.3, lopass=30, baseline=None):
+def pipeline_EP_allsubs(case, watch, tmin, tmax, hipass=0.3, lopass=30, baseline=None, detrend=0):
     real_ids = [1, 3, 4, 5, 9, 12, 13, 17, 18]
     sham_ids = [2, 6, 7, 8, 10, 11, 14, 15, 16]
     sham_evoked_before = []
@@ -518,13 +518,13 @@ def pipeline_EP_allsubs(case, watch, tmin, tmax, hipass=0.3, lopass=30, baseline
 
     for subject_id in sham_ids:
         trials_before, trials_after = get_inuse_trials(subject_id, behav_sham_before, behav_sham_after)
-        evoked_before, evoked_after = onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass, lopass, baseline)
+        evoked_before, evoked_after = onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass, lopass, baseline, detrend=detrend)
         sham_evoked_before.append(evoked_before)
         sham_evoked_after.append(evoked_after)
     
     for subject_id in real_ids:
         trials_before, trials_after = get_inuse_trials(subject_id, behav_real_before, behav_real_after)
-        evoked_before, evoked_after = onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass, lopass, baseline)
+        evoked_before, evoked_after = onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass, lopass, baseline, detrend=detrend)
         real_evoked_before.append(evoked_before)
         real_evoked_after.append(evoked_after)
 

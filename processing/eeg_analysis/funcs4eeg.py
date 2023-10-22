@@ -240,7 +240,9 @@ def translate_case(case):
                     'cue left': '3 | 5', 'endo cue left': '3', 'exo cue left': '5', 'cue right': '4 | 6', 'endo cue right': '4', 'exo cue right': '6',
                     'stim left': '12', 'endo stim left': '(3 | 4) & 12', 'exo stim left': '(5 | 6) & 12',
                     'stim right': '13', 'endo stim right': '(3 | 4) & 13', 'exo stim right': '(5 | 6) & 13',
-                    'endo fast': '(3 | 4) & 9', 'exo fast': '(5 | 6) & 9', 'endo slow': '(3 | 4) & 10', 'exo slow': '(5 | 6) & 10'}
+                    'endo fast': '(3 | 4) & 9', 'exo fast': '(5 | 6) & 9', 'endo slow': '(3 | 4) & 10', 'exo slow': '(5 | 6) & 10',
+                    'endo valid fast': '(3 | 4) & 7 & 9', 'exo valid fast': '(5 | 6) & 7 & 9', 'endo valid slow': '(3 | 4) & 7 & 10', 'exo valid slow': '(5 | 6) & 7 & 10',
+                    'endo invalid fast': '(3 | 4) & 8 & 9', 'exo invalid fast': '(5 | 6) & 8 & 9', 'endo invalid slow': '(3 | 4) & 8 & 10', 'exo invalid slow': '(5 | 6) & 8 & 10'}
     case_by_id = case_id_dict[case]
     return case_by_id
 

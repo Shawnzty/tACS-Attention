@@ -789,7 +789,7 @@ def normalize_tfmap(tfmap, times, axis):
     return tfmap
 
 
-def pipeline_EP_RT(case, watch, tmin, tmax, hipass=None, lopass=None, baseline=None, move_baseline=True):
+def pipeline_EP_RT(case, watch, tmin, tmax, hipass=None, lopass=None, baseline=None, move_baseline=True, detrend=0):
     real_ids = [1, 3, 4, 5, 9, 12, 13, 17, 18]
     sham_ids = [2, 6, 7, 8, 10, 11, 14, 15, 16]
 
@@ -808,7 +808,7 @@ def pipeline_EP_RT(case, watch, tmin, tmax, hipass=None, lopass=None, baseline=N
 
     for subject_id in sham_ids:
         trials_before, trials_after = get_inuse_trials(subject_id, behav_sham_before, behav_sham_after)
-        evoked_before, evoked_after = onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass, lopass, baseline)
+        evoked_before, evoked_after = onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass, lopass, baseline, detrend=detrend)
         RT_before = behav_sham_before.loc[behav_sham_before['subject id'] == subject_id, 'reaction time'].to_numpy()
         RT_after = behav_sham_after.loc[behav_sham_after['subject id'] == subject_id, 'reaction time'].to_numpy()
         sham_evoked_before.append(evoked_before)
@@ -823,7 +823,7 @@ def pipeline_EP_RT(case, watch, tmin, tmax, hipass=None, lopass=None, baseline=N
     
     for subject_id in real_ids:
         trials_before, trials_after = get_inuse_trials(subject_id, behav_real_before, behav_real_after)
-        evoked_before, evoked_after = onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass, lopass, baseline)
+        evoked_before, evoked_after = onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass, lopass, baseline, detrend=detrend)
         RT_before = behav_real_before.loc[behav_real_before['subject id'] == subject_id, 'reaction time'].to_numpy()
         RT_after = behav_real_after.loc[behav_real_after['subject id'] == subject_id, 'reaction time'].to_numpy()
         real_evoked_before.append(evoked_before)

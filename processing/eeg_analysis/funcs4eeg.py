@@ -3,6 +3,7 @@ import os
 sys.path.insert(0, os.path.abspath('..'))
 from scipy.io import loadmat
 from scipy.signal import find_peaks
+from scipy import signal
 from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
@@ -360,9 +361,9 @@ def makeup_subject(eeg_data, tmin, tmax, baseline=(0,0)):
     ch_types = ['eeg'] * 32 + ['stim']
 
     # Create the info object
-    info = mne.create_info(ch_names, sfreq=1200, ch_types=ch_types)
+    info = mne.create_info(ch_names, sfreq=1200, ch_types=ch_types, verbose=False)
     # Create raw object
-    raw = mne.io.RawArray(eeg_data, info)
+    raw = mne.io.RawArray(eeg_data, info, verbose=False)
 
     # manually add the placement of electrodes
     elec_coords = {
@@ -407,11 +408,11 @@ def makeup_subject(eeg_data, tmin, tmax, baseline=(0,0)):
     raw.set_montage(montage)
 
     # events
-    events = mne.find_events(raw, stim_channel="stim")
+    events = mne.find_events(raw, stim_channel="stim", verbose=False)
     event_dict = {"stim": 1}
     epochs = mne.Epochs(raw, events, event_id=event_dict, tmin=tmin, tmax=tmax, baseline=baseline, preload=True, verbose=False, detrend=0) # detrend!!
 
-    return epochs.average()
+    return epochs# .average()
 
 
 def pick_cortex(command):
@@ -944,3 +945,13 @@ def pipeline_csp_onecond(case, watch, tmin, tmax, hipass, lopass, baseline=None,
         cleanEP_lists[i] = np.concatenate(one_session, axis=0)
 
     return cleanEP_lists
+
+
+
+def find_closest_index(array, value):
+    """
+    Find the index of the closest value in an array.
+    """
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    return idx

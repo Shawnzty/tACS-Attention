@@ -947,7 +947,6 @@ def pipeline_csp_onecond(case, watch, tmin, tmax, hipass, lopass, baseline=None,
     return cleanEP_lists
 
 
-
 def find_closest_index(array, value):
     """
     Find the index of the closest value in an array.
@@ -955,3 +954,10 @@ def find_closest_index(array, value):
     array = np.asarray(array)
     idx = (np.abs(array - value)).argmin()
     return idx
+
+
+def band_power(psds, freqs, band):
+    freq_start = find_closest_index(freqs, band[0])
+    freq_end = find_closest_index(freqs, band[1])
+    power = np.sum(psds[:,freq_start:freq_end], axis=1)*np.diff(freqs)[0]
+    return power

@@ -804,7 +804,6 @@ def pipeline_EP_RT(case, watch, tmin, tmax, hipass=None, lopass=None, baseline=N
     real_RT_after = []
 
     case_by_id = translate_case(case)
-
     behav_sham_before, behav_sham_after, behav_real_before, behav_real_after, _, _ = reaction_time_table(case)
 
     for subject_id in sham_ids:
@@ -867,6 +866,7 @@ def pipeline_EP_RT(case, watch, tmin, tmax, hipass=None, lopass=None, baseline=N
             ]
     ]
 
+    # remove bad channels
     for i, session_data in enumerate(EP_lists):
         one_group_list = []
         one_group_RT_list = []
@@ -885,8 +885,8 @@ def pipeline_EP_RT(case, watch, tmin, tmax, hipass=None, lopass=None, baseline=N
         EP_bychan_lists[i] = one_group
         RT_bychan_lists[i] = one_group_RT
 
-
     return EP_bychan_lists, RT_bychan_lists
+
 
 def extract_channels_EP_RT(EP_bychan_lists, pick_channels):
     pick_channels = [x - 1 for x in pick_channels]
@@ -961,3 +961,72 @@ def band_power(psds, freqs, band):
     freq_end = find_closest_index(freqs, band[1])
     power = np.sum(psds[:,freq_start:freq_end], axis=1)*np.diff(freqs)[0]
     return power
+
+
+def channel_pos():
+    eeg_data = np.zeros((32, 2))
+     # get placement data of standard 10-20 system
+    montage_1020 = mne.channels.make_standard_montage('standard_1020')
+    positions_1020 = montage_1020._get_ch_pos()
+    elec_coords_1020 = {ch_name: coord for ch_name, coord in positions_1020.items() if ch_name in montage_1020.ch_names}
+
+    # Define channel names and types
+    ch_names = ['Fp1', 'Fp2', 
+                        'AF3', 'AF4', 
+                        'F7', 'F3', 'Fz', 'F4', 'F8',
+                        'FC1', 'FC2',
+                        'T7', 'C3', 'Cz', 'C4', 'T8',
+                        'CP5', 'CP1', 'CP2', 'CP6',
+                        'P7', 'P5', 'P3', 'Pz', 'P4', 'P6', 'P8',
+                        'PO3', 'PO4',
+                        'O1', 'Oz', 'O2']
+    ch_types = ['eeg'] * 32
+
+    # Create the info object
+    info = mne.create_info(ch_names, sfreq=1200, ch_types=ch_types, verbose=False)
+    # Create raw object
+    raw = mne.io.RawArray(eeg_data, info, verbose=False)
+
+    # manually add the placement of electrodes
+    elec_coords = {
+        'Fp1': elec_coords_1020['Fp1'],
+        'Fp2': elec_coords_1020['Fp2'],
+        'AF3': elec_coords_1020['AF3'],
+        'AF4': elec_coords_1020['AF4'],
+        'F7': elec_coords_1020['F7'],
+        'F3': elec_coords_1020['F3'],
+        'Fz': elec_coords_1020['Fz'],
+        'F4': elec_coords_1020['F4'],
+        'F8': elec_coords_1020['F8'],
+        'FC1': elec_coords_1020['FC1'],
+        'FC2': elec_coords_1020['FC2'],
+        'T7': elec_coords_1020['T7'],
+        'C3': elec_coords_1020['C3'],
+        'Cz': elec_coords_1020['Cz'],
+        'C4': elec_coords_1020['C4'],
+        'T8': elec_coords_1020['T8'],
+        'CP5': elec_coords_1020['CP5'],
+        'CP1': elec_coords_1020['CP1'],
+        'CP2': elec_coords_1020['CP2'],
+        'CP6': elec_coords_1020['CP6'],
+        'P7': elec_coords_1020['P7'],
+        'P5': elec_coords_1020['P5'],
+        'P3': elec_coords_1020['P3'],
+        'Pz': elec_coords_1020['Pz'],
+        'P4': elec_coords_1020['P4'],
+        'P6': elec_coords_1020['P6'],
+        'P8': elec_coords_1020['P8'],
+        'PO3': elec_coords_1020['PO3'],
+        'PO4': elec_coords_1020['PO4'],
+        'O1': elec_coords_1020['O1'],
+        'Oz': elec_coords_1020['Oz'],
+        'O2': elec_coords_1020['O2'],
+    }
+
+    # Create the montage object
+    montage = mne.channels.make_dig_montage(elec_coords, coord_frame='head')
+
+    # add info and montage to raw object
+    raw.set_montage(montage)
+
+    return raw

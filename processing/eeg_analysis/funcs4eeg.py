@@ -1030,3 +1030,87 @@ def channel_pos():
     raw.set_montage(montage)
 
     return raw
+
+
+def pipeline_session_RT(case, watch, tmin, tmax, hipass=None, lopass=None, baseline=None, move_baseline=True, detrend=0):
+    real_ids = [1, 3, 4, 5, 9, 12, 13, 17, 18]
+    sham_ids = [2, 6, 7, 8, 10, 11, 14, 15, 16]
+
+    sham_evoked_before = []
+    sham_RT_before = []
+    sham_evoked_after = []
+    sham_RT_after = []
+    real_evoked_before = []
+    real_RT_before = []
+    real_evoked_after = []
+    real_RT_after = []
+
+    case_by_id = translate_case(case)
+    behav_sham_before, behav_sham_after, behav_real_before, behav_real_after, _, _ = reaction_time_table(case)
+
+    for subject_id in sham_ids:
+        trials_before, trials_after = get_inuse_trials(subject_id, behav_sham_before, behav_sham_after)
+        evoked_before, evoked_after = onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass, lopass, baseline, detrend=detrend)
+        RT_before = behav_sham_before.loc[behav_sham_before['subject id'] == subject_id, 'reaction time'].to_numpy()
+        RT_after = behav_sham_after.loc[behav_sham_after['subject id'] == subject_id, 'reaction time'].to_numpy()
+        sham_evoked_before.append(evoked_before)
+        sham_evoked_after.append(evoked_after)
+
+        if RT_before.shape[0]>evoked_before.shape[0]:
+            RT_before = RT_before[:evoked_before.shape[0]]
+        if RT_after.shape[0]>evoked_after.shape[0]:
+            RT_after = RT_after[:evoked_after.shape[0]]
+        sham_RT_before.append(RT_before)
+        sham_RT_after.append(RT_after)
+    
+    for subject_id in real_ids:
+        trials_before, trials_after = get_inuse_trials(subject_id, behav_real_before, behav_real_after)
+        evoked_before, evoked_after = onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass, lopass, baseline, detrend=detrend)
+        RT_before = behav_real_before.loc[behav_real_before['subject id'] == subject_id, 'reaction time'].to_numpy()
+        RT_after = behav_real_after.loc[behav_real_after['subject id'] == subject_id, 'reaction time'].to_numpy()
+        real_evoked_before.append(evoked_before)
+        real_evoked_after.append(evoked_after)
+
+        if RT_before.shape[0]>evoked_before.shape[0]:
+            RT_before = RT_before[:evoked_before.shape[0]]
+        if RT_after.shape[0]>evoked_after.shape[0]:
+            RT_after = RT_after[:evoked_after.shape[0]]
+        real_RT_before.append(RT_before)
+        real_RT_after.append(RT_after)
+
+    EP_lists = [sham_evoked_before, sham_evoked_after, real_evoked_before, real_evoked_after]
+    # move the baseline to mean of [tmin, 0]
+    if move_baseline:
+        for i, session_data in enumerate(EP_lists):
+            for sub_data in session_data:
+                for trial in range(sub_data.shape[0]):
+                    for channel in range (sub_data.shape[1]):
+                        sub_data[trial, channel, :] = sub_data[trial, channel, :] - np.mean(sub_data[trial, channel, :int(abs(tmin)*1200)])
+                EP_lists[i].append(sub_data)
+
+    # remove bad channels
+    RT_lists = [sham_RT_before, sham_RT_after, real_RT_before, real_RT_after]
+    # choose channels
+    bad_channels = [
+            [ # sham before
+                [], [], [], [], [], [], [22,21], [5,9], []
+            ],
+            [ # sham after
+                [], [], [], [], [], [], [], [], []
+            ],
+            [ # real before
+                [], [], [], [], [], [], [], [], []
+            ],
+            [ # real after
+                [], [], [], [], [], [7], [], [], []
+            ]
+    ]
+
+    # remove bad channels
+    for i, session_data in enumerate(EP_lists):
+        for group_id in range(9):
+            if bad_channels[i][group_id] != []:
+                bad_channel = [x - 1 for x in bad_channels[i][group_id]]
+                EP_lists[i][group_id][:, bad_channel, :] = np.nan
+
+    return EP_lists, RT_lists

@@ -963,13 +963,6 @@ def band_power(psds, freqs, band):
     return power
 
 
-def band_power_onechan_alltrials(psds, freqs, band):
-    freq_start = find_closest_index(freqs, band[0])
-    freq_end = find_closest_index(freqs, band[1])
-    power = np.sum(psds[:,freq_start:freq_end], axis=1)*np.diff(freqs)[0]
-    return power
-
-
 def channel_pos():
     eeg_data = np.zeros((32, 2))
      # get placement data of standard 10-20 system

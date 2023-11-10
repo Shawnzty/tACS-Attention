@@ -1171,3 +1171,9 @@ def pipeline_session_channel(case, watch, tmin, tmax, hipass=None, lopass=None, 
         eeg_by_channel.append(this_session)     
 
     return eeg_by_channel[0], eeg_by_channel[1], eeg_by_channel[2], eeg_by_channel[3]
+
+
+def butter_bandpass_filter(data, lowcut, highcut, fs, order=5):
+    b, a = butter_bandpass(lowcut, highcut, fs, order=order)
+    y = lfilter(b, a, data)
+    return y

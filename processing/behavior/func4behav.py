@@ -13,7 +13,10 @@ from pyddm.models import DriftConstant, NoiseConstant, BoundConstant, OverlayNon
 from pyddm.functions import fit_adjust_model, display_model
 import pyddm.plot
 
-relative_path = os.path.join('..', '..', '..', 'data')
+# for behavior
+# relative_path = os.path.join('..', '..', '..', 'data')
+# for EEG
+relative_path = os.path.join('..', '..', '..', '..', 'data')
 
 def create_compare():
     exp_path = os.path.join('..', '..', '..', 'data', 'experiment.csv')

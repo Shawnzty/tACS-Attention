@@ -48,4 +48,5 @@ eeg_overview is the program to plot the overview of the EEG data. (not used any 
 - `distribution_by_subs`: distribution analysis of each subject
 - `each_sub`: analysis of each subject
 
+## `paper_figs` for figures in EMBC paper
 

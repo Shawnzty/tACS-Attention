@@ -30,8 +30,11 @@ eeg_overview is the program to plot the overview of the EEG data. (not used any 
 
 ## `eeg_analysis` of eeg data
 1. `func4eeg`: functions for eeg analysis
-2. `ERP`: analysis of ERP, evoked response potential
-3. `FBP`: analysis of FBP, frequency band power
+2. `EvokedPotential`: analysis of ERP, evoked response potential
+3. `FrequencyPower`: analysis of FBP, frequency band power\
+4. `DetrendedFluctuation`: analysis of DFA, detrended fluctuation analysis
+5. `EEG_ML`
+6. `tmp_files`: temporary files for eeg analysis
 
 - `eeg_overview`: show the overview of eeg data
 - `manual_pick_ica`: manually pick ICAs to remove or keep, and save in ic_to_remove.csv

@@ -33,7 +33,7 @@ eeg_overview is the program to plot the overview of the EEG data. (not used any 
 2. `EvokedPotential`: analysis of ERP, evoked response potential
 3. `FrequencyPower`: analysis of FBP, frequency band power\
 4. `DetrendedFluctuation`: analysis of DFA, detrended fluctuation analysis
-5. `EEG_ML`
+5. `EEG_ML`: tried some machine learning on reaction time or sham/active classification, but not good
 6. `tmp_files`: temporary files for eeg analysis
 
 - `eeg_overview`: show the overview of eeg data

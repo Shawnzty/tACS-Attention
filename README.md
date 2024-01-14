@@ -15,6 +15,11 @@ eeg_overview is the program to plot the overview of the EEG data. (not used any 
 2. manual_pick_ica and ic_to_remove: are used for manual picking of ICA components
 3. icaRepair: repair the ICA components based on ic_to_remove
 
+## `exp_program`: main program to run the experiment
+1. `main`: main program to run the experiment
+2. `funcs`: functions for the experiment
+3. `settings`: settings for the experiment
+
 ## `Preprocessing` of eeg data
 1. `rename_eeg`: change the name of the variable from y to eeg.
 2. `trigger_align`: align the trigger to eeg to remove delay.
@@ -35,12 +40,6 @@ eeg_overview is the program to plot the overview of the EEG data. (not used any 
 4. `DetrendedFluctuation`: analysis of DFA, detrended fluctuation analysis
 5. `EEG_ML`: tried some machine learning on reaction time or sham/active classification, but not good
 6. `tmp_files`: temporary files for eeg analysis
-
-- `eeg_overview`: show the overview of eeg data
-- `manual_pick_ica`: manually pick ICAs to remove or keep, and save in ic_to_remove.csv
-- `func4eeg`: functions for eeg analysis
-- `individual_analysis`: (Not in use)analysis of individual eeg data
-- `group_analysis`: (Not in use) analysis of group eeg data  
 
 ## `behavior` for behavior data
 - `behavior`: basic analysis of behavior data

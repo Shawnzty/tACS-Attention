@@ -19,6 +19,7 @@ eeg_overview is the program to plot the overview of the EEG data. (not used any 
 1. `main`: main program to run the experiment
 2. `funcs`: functions for the experiment
 3. `settings`: settings for the experiment
+4. `trig_on_computer`: trigger testing
 
 ## `Preprocessing` of eeg data
 1. `rename_eeg`: change the name of the variable from y to eeg.

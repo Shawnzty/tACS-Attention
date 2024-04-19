@@ -1173,6 +1173,58 @@ def pipeline_session_channel(case, watch, tmin, tmax, hipass=None, lopass=None, 
     return eeg_by_channel[0], eeg_by_channel[1], eeg_by_channel[2], eeg_by_channel[3]
 
 
+def pipeline_bpdata_channel(case, watch, tmin, tmax, hipass=None, lopass=None, baseline=None, detrend=0):
+    real_ids = [1, 3, 4, 5, 9, 12, 13, 17, 18]
+    sham_ids = [2, 6, 7, 8, 10, 11, 14, 15, 16]
+
+    sham_evoked_before = []
+    sham_evoked_after = []
+    real_evoked_before = []
+    real_evoked_after = []
+
+    case_by_id = translate_case(case)
+    behav_sham_before, behav_sham_after, behav_real_before, behav_real_after, _, _ = reaction_time_table(case)
+
+    for subject_id in sham_ids:
+        trials_before, trials_after = get_inuse_trials(subject_id, behav_sham_before, behav_sham_after)
+        evoked_before, evoked_after = onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass, lopass, baseline, detrend=detrend)
+        sham_evoked_before.append(evoked_before)
+        sham_evoked_after.append(evoked_after)
+    
+    for subject_id in real_ids:
+        trials_before, trials_after = get_inuse_trials(subject_id, behav_real_before, behav_real_after)
+        evoked_before, evoked_after = onesub_evoked_response(subject_id, case_by_id, watch, tmin, tmax, trials_before, trials_after, hipass, lopass, baseline, detrend=detrend)
+        real_evoked_before.append(evoked_before)
+        real_evoked_after.append(evoked_after)
+
+    eeg_by_subject = [sham_evoked_before, sham_evoked_after, real_evoked_before, real_evoked_after]
+
+    # remove bad channels
+    bad_channels = [
+            [ # sham before
+                [], [], [], [], [], [], [22,21], [5,9], []
+            ],
+            [ # sham after
+                [], [], [], [], [], [], [], [], []
+            ],
+            [ # real before
+                [], [], [], [], [], [], [], [], []
+            ],
+            [ # real after
+                [], [], [], [], [], [7], [], [], []
+            ]
+    ]
+    eeg_by_channel = []
+    for i, session_by_subject in enumerate(eeg_by_subject):
+        this_session = []
+        for group_id in range(9):
+            if bad_channels[i][group_id] == []:
+                this_session.append(session_by_subject[group_id])
+        eeg_by_channel.append(this_session)     
+
+    return eeg_by_channel[0], eeg_by_channel[1], eeg_by_channel[2], eeg_by_channel[3]
+
+
 def butter_bandpass_filter(data, lowcut, highcut, fs, order=5):
     b, a = butter_bandpass(lowcut, highcut, fs, order=order)
     y = lfilter(b, a, data)

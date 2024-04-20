@@ -178,7 +178,7 @@ def pipeline_band_power(subject_id, case, watch, fmin, fmax, tmin, tmax):
 
 
 def get_evoked_response(epochs):
-    evoked = epochs.get_data()
+    evoked = epochs.get_data(copy=False) # FutureWarning: The current default of copy=False will change to copy=True in 1.7. Set the value of copy explicitly to avoid this warning
     evoked = evoked[:,1:33,:]
     # evoked = np.median(evoked, axis=0) # median
     # evoked = np.median(evoked, axis=0) # median

@@ -16,6 +16,7 @@ import scipy.signal
 from scipy.signal import welch
 import behavior.func4behav as fb
 import imp
+from mne.stats import permutation_cluster_test, permutation_cluster_1samp_test
 imp.reload(fb)
 
 relative_path = os.path.join('..', '..', '..', '..', 'data')
@@ -1229,3 +1230,33 @@ def butter_bandpass_filter(data, lowcut, highcut, fs, order=5):
     b, a = butter_bandpass(lowcut, highcut, fs, order=order)
     y = lfilter(b, a, data)
     return y
+
+
+def sign_of_tvalue(condition1, condition2):
+    # Step 1: Calculate median of each column for both conditions
+    condition1_med = np.median(condition1, axis=0)
+    condition2_med = np.median(condition2, axis=0)
+    # Step 2: Subtract condition1_med from condition2_med
+    subs = condition2_med - condition1_med
+    # Step 3: Convert positive values to 1 and negative values to -1
+    subs = np.where(subs > 0, 1, -1)
+    
+    return subs
+
+
+def perm_test(condition1, condition2, adjacency):
+    # T-test
+    f_obs, clusters, cluster_p_values, H0 = permutation_cluster_test(
+        [condition1, condition2], n_permutations=2000, adjacency=adjacency, tail=0, verbose=False)
+    # Find significant clusters
+    significant_clusters = np.nonzero(cluster_p_values < 0.05)[0]
+
+    for idx in significant_clusters:
+        cluster = clusters[idx][0]
+        if cluster.shape[0] > 1:
+            print(f"Cluster {idx}, p-value: {cluster_p_values[idx]}")
+            print("Electrodes:", cluster)
+    
+    sign = sign_of_tvalue(condition1, condition2)
+    t_obs = np.sqrt(f_obs) * sign
+    return t_obs

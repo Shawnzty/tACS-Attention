@@ -17,6 +17,10 @@ from scipy.signal import welch
 import behavior.func4behav as fb
 import imp
 from mne.stats import permutation_cluster_test, permutation_cluster_1samp_test
+import fathon
+from fathon import fathonUtils as fu
+from scipy.signal import butter, lfilter
+
 imp.reload(fb)
 
 relative_path = os.path.join('..', '..', '..', '..', 'data')
@@ -1260,3 +1264,11 @@ def perm_test(condition1, condition2, adjacency):
     sign = sign_of_tvalue(condition1, condition2)
     t_obs = np.sqrt(f_obs) * sign
     return t_obs
+
+def dfa_alpha(data, min_win=25, max_win=200):
+    dfa_data = fu.toAggregated(data)
+    pydfa = fathon.DFA(dfa_data)
+    wins = fu.linRangeByStep(min_win, max_win)
+    n,F = pydfa.computeFlucVec(wins, revSeg=True, polOrd=3)
+    H, H_intercept = pydfa.fitFlucVec()
+    return H
